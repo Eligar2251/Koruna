@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { OrderForm } from '@/components/forms/order-form'
 import { formatPrice, pluralizeItems } from '@/lib/format'
 import { useCart } from './cart-context'
@@ -21,12 +22,12 @@ export function CartDrawer() {
     }
   }, [isOpen, close])
 
-  if (!isOpen) return null
-
   return (
-    <div className="drawer-root">
-      <button type="button" className="drawer-overlay" aria-label="Закрыть корзину" onClick={close} />
-      <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <AnimatePresence>
+    {isOpen ? (
+    <div className="drawer-root" key="drawer">
+      <motion.button type="button" className="drawer-overlay" aria-label="Закрыть корзину" onClick={close} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} />
+      <motion.aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', stiffness: 380, damping: 40 }}>
         <div className="drawer-head">
           <h2 id="cart-title" className="drawer-title">
             Корзина {count > 0 ? <span className="muted">· {pluralizeItems(items.length)}</span> : null}
@@ -83,7 +84,9 @@ export function CartDrawer() {
             <OrderForm />
           </div>
         </div>
-      </aside>
+      </motion.aside>
     </div>
+    ) : null}
+    </AnimatePresence>
   )
 }
