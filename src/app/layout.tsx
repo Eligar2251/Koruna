@@ -6,6 +6,9 @@ import { CookieBanner } from '@/components/site/cookie-banner'
 import { Footer } from '@/components/site/footer'
 import { Header } from '@/components/site/header'
 import { site } from '@/config/site'
+import '@fontsource-variable/manrope'
+import '@fontsource-variable/unbounded'
+import { MotionProvider } from '@/components/motion/motion-provider'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -36,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="stylesheet" href="/_ext/fonts.googleapis.com/css2/inter.css" />
       </head>
       <body>
+        <MotionProvider>
         <CartProvider>
           <a href="#main" className="skip-link">
             Перейти к содержимому
@@ -46,6 +50,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <CartDrawer />
           <CookieBanner />
         </CartProvider>
+        </MotionProvider>
       </body>
     </html>
   )
