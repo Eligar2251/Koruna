@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useCart } from '@/components/cart/cart-context'
+import { useCartActions } from '@/components/cart/cart-context'
 
 type Props = {
   product: { id: string; slug: string; name: string; price: number | null; unit: string }
 }
 
 export function AddToCart({ product }: Props) {
-  const { add } = useCart()
+  const { add } = useCartActions()
   const [qty, setQty] = useState(1)
 
   return (

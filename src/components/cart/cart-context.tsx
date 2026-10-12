@@ -18,7 +18,12 @@ type CartContextValue = {
   clear: () => void
 }
 
+type CartActions = Pick<CartContextValue, 'open' | 'close' | 'add' | 'setQty' | 'remove' | 'clear'>
+
 const CartContext = createContext<CartContextValue | null>(null)
+// Отдельный контекст только с действиями: он не меняется при изменении корзины,
+// поэтому карточки каталога не перерисовываются на каждое изменение количества.
+const CartActionsContext = createContext<CartActions | null>(null)
 
 function readStorage(): CartItem[] {
   try {
@@ -68,6 +73,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => setItems([]), [])
 
+  const actions = useMemo<CartActions>(
+    () => ({ open: () => setIsOpen(true), close: () => setIsOpen(false), add, setQty, remove, clear }),
+    [add, setQty, remove, clear],
+  )
+
   const value = useMemo<CartContextValue>(() => {
     const count = items.reduce((sum, i) => sum + i.qty, 0)
     const total = items.some((i) => i.price === null)
@@ -87,7 +97,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, isOpen, add, setQty, remove, clear])
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return (
+    <CartActionsContext.Provider value={actions}>
+      <CartContext.Provider value={value}>{children}</CartContext.Provider>
+    </CartActionsContext.Provider>
+  )
+}
+
+export function useCartActions() {
+  const ctx = useContext(CartActionsContext)
+  if (!ctx) throw new Error('useCartActions вне CartProvider')
+  return ctx
 }
 
 export function useCart() {

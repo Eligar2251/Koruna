@@ -1,12 +1,13 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
-import { useCart } from '@/components/cart/cart-context'
+import { useCartActions } from '@/components/cart/cart-context'
 import { formatPrice } from '@/lib/format'
 import type { ProductWithCategory } from '@/lib/types'
 
-export function ProductCard({ product }: { product: ProductWithCategory }) {
-  const { add } = useCart()
+function ProductCardBase({ product }: { product: ProductWithCategory }) {
+  const { add } = useCartActions()
   const href = `/product/${product.slug}`
 
   return (
@@ -44,3 +45,5 @@ export function ProductCard({ product }: { product: ProductWithCategory }) {
     </article>
   )
 }
+
+export const ProductCard = memo(ProductCardBase)
