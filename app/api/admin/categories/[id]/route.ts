@@ -1,5 +1,5 @@
-import { attachSession, hasSiteHeader, openAdmin } from '../../../../../lib/auth'
-import { fail, json, readJson, validId } from '../../../../../lib/http'
+import { fail, json, readJson, requireAdmin, validId } from '../../../../../lib/http'
+import { getStore } from '../../../../../lib/server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,27 +11,25 @@ function missing() {
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
-  if (!hasSiteHeader(req)) return json({ error: 'Запрос отклонён' }, 403)
-  const opened = await openAdmin(req)
-  if ('response' in opened) return opened.response
+  const denied = requireAdmin(req)
+  if (denied) return denied
   const { id } = await ctx.params
   if (!validId(id)) return missing()
   try {
-    return attachSession(json(await opened.session.store.saveCategory(await readJson(req), id)), opened.session, req)
+    return json(await (await getStore()).saveCategory(await readJson(req), id))
   } catch (err) {
-    return attachSession(fail(err), opened.session, req)
+    return fail(err)
   }
 }
 
 export async function DELETE(req: Request, ctx: Ctx) {
-  if (!hasSiteHeader(req)) return json({ error: 'Запрос отклонён' }, 403)
-  const opened = await openAdmin(req)
-  if ('response' in opened) return opened.response
+  const denied = requireAdmin(req)
+  if (denied) return denied
   const { id } = await ctx.params
   if (!validId(id)) return missing()
   try {
-    return attachSession(json(await opened.session.store.deleteCategory(id)), opened.session, req)
+    return json(await (await getStore()).deleteCategory(id))
   } catch (err) {
-    return attachSession(fail(err), opened.session, req)
+    return fail(err)
   }
 }

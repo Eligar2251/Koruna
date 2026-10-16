@@ -1,20 +1,18 @@
-import { attachSession, hasSiteHeader, openAdmin } from '../../../../lib/auth'
-import { fail, json, readJson } from '../../../../lib/http'
-import { applyImageFields, saveImage } from '../../../../lib/server'
+import { fail, json, readJson, requireAdmin } from '../../../../lib/http'
+import { applyImageFields, getStore, saveImage } from '../../../../lib/server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
-  if (!hasSiteHeader(req)) return json({ error: 'Запрос отклонён' }, 403)
-  const opened = await openAdmin(req)
-  if ('response' in opened) return opened.response
+  const denied = requireAdmin(req)
+  if (denied) return denied
   try {
     const body = await readJson(req)
-    const imageUrl = body.image_base64 ? await saveImage(body, opened.session.client) : undefined
+    const imageUrl = body.image_base64 ? await saveImage(body) : undefined
     applyImageFields(body, imageUrl)
-    return attachSession(json(await opened.session.store.saveProduct(body)), opened.session, req)
+    return json(await (await getStore()).saveProduct(body))
   } catch (err) {
-    return attachSession(fail(err), opened.session, req)
+    return fail(err)
   }
 }

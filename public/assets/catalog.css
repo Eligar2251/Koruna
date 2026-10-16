@@ -43,10 +43,10 @@
 }
 
 .koruna-catalog__admin {
-  color: #1C6B5A;
+  color: #2f5491;
   font-size: 14px;
   text-decoration: none;
-  border-bottom: 1px solid rgba(28, 107, 90, 0.35);
+  border-bottom: 1px solid rgba(47, 84, 145, 0.35);
 }
 
 .koruna-chips {
@@ -115,7 +115,7 @@
 }
 
 .koruna-card__price {
-  color: #1C6B5A;
+  color: #2f5491;
   font-weight: 650;
 }
 
@@ -133,7 +133,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: #1C6B5A;
+  color: #2f5491;
   font: inherit;
   cursor: pointer;
 }

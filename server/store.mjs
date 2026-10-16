@@ -80,31 +80,8 @@ export function productInput(body, fallbackSlug) {
     is_active: parseBool(body.is_active, true),
   }
   if (Object.hasOwn(body, 'category_id')) input.category_id = body.category_id || null
-  if (Object.hasOwn(body, 'image_url')) input.image_url = cleanImageUrl(body.image_url)
+  if (Object.hasOwn(body, 'image_url')) input.image_url = body.image_url || null
   return input
-}
-
-function localAsset(text) {
-  if (text.includes('..') || text.includes('\\') || text.includes('//') || text.includes('?') || text.includes('#')) return false
-  if (!/^\/[a-zA-Z0-9._/-]+$/.test(text)) return false
-  return text.startsWith('/uploads/') || text.startsWith('/assets/') || text.startsWith('/_static.tildacdn.com/')
-}
-
-function cleanImageUrl(value) {
-  if (value === null || value === undefined || value === '') return null
-  const text = String(value).trim()
-  if (text.length > 2000) throw new Error('Некорректный адрес фото')
-  if (localAsset(text)) return text
-  let url
-  try {
-    url = new URL(text)
-  } catch {
-    throw new Error('Некорректный адрес фото')
-  }
-  if (url.protocol !== 'https:' || !url.pathname.startsWith('/storage/v1/object/public/product-images/')) {
-    throw new Error('Некорректный адрес фото')
-  }
-  return text
 }
 
 function publicCatalog(categories, products) {
@@ -229,10 +206,8 @@ export function createSupabaseStore(client) {
     if (/relation .* does not exist|schema cache/i.test(error.message)) {
       throw new Error('В Supabase нет таблиц каталога. Примените миграции из supabase/migrations.')
     }
-    if (/duplicate key|unique/i.test(error.message)) throw new Error('Такой адрес уже есть')
-    if (/row-level security|permission denied|42501/i.test(error.message)) throw new Error('Нет доступа')
-    if (/jwt|invalid claim|PGRST301/i.test(error.message)) throw new Error('Нужен вход')
-    throw new Error('Не удалось сохранить данные')
+    if (/duplicate key/i.test(error.message)) throw new Error('Такой адрес уже есть')
+    throw new Error(error.message)
   }
 
   return {

@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
+import { isAdmin } from './server'
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, {
     status,
-    headers: {
-      'cache-control': 'no-store',
-      'x-content-type-options': 'nosniff',
-      'referrer-policy': 'same-origin',
-    },
+    headers: { 'cache-control': 'no-store' },
   })
 }
 
@@ -32,9 +29,19 @@ export async function readJson(req: Request) {
   }
 }
 
+export function requireAdmin(req: Request) {
+  if (!isAdmin(req)) return json({ error: 'Нужен вход' }, 401)
+  return null
+}
+
 const ID = /^[0-9a-f-]{36}$/
 
 export function validId(id: string) {
   return ID.test(id)
 }
 
+export function sessionCookie(token: string, maxAge: number) {
+  const response = json({ ok: true })
+  response.headers.set('set-cookie', `koruna_admin=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`)
+  return response
+}
