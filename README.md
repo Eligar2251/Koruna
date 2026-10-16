@@ -1,81 +1,46 @@
-# Очистка базы Supabase
+# РегионЛес
 
-Репозиторий содержит только очистку базы проекта Koruna. Кода магазина здесь больше нет.
+Сайт на Next.js. Страницы, тексты и стили те же: HTML отдаётся без изменений. Админка — React и TypeScript. Разделы и товары добавляются в админке и сразу появляются на страницах каталога.
 
-Скрипт необратимо удаляет данные. Сначала смотрите план (`--dry-run`), затем запускайте с `--yes`.
-
-## Что удаляется
-
-По умолчанию:
-
-- всё в схеме `public`: таблицы, представления, функции, типы, последовательности;
-- политики Storage, которые относятся к бакету `product-images` или вызывают `is_admin()`;
-- сам бакет `product-images` и файлы в нём — через Storage API, чтобы объекты удалились и из S3;
-- история в `supabase_migrations`, если эта схема есть.
-
-Раньше магазин хранил здесь `admin_users`, `categories`, `products`, `leads`, типы `lead_type` и `lead_status`, функции `is_admin()` и `set_updated_at()`, фото в `product-images/products/`. Скрипт не ищет их по именам: он очищает всю схему `public`.
-
-Не удаляется без отдельного флага:
-
-- пользователи Authentication (`--with-auth`);
-- другие бакеты (`--all-storage`);
-- сам проект Supabase, схемы `auth`, `storage`, `extensions` и объекты расширений.
-
-SQL намеренно не делает `delete from storage.objects`. Такой запрос оставляет файлы в S3, и они продолжают тарифицироваться. На новых проектах он ещё и запрещён триггером.
-
-## Запуск
+## Сайт и админка
 
 ```bash
 npm install
-cp .env.example .env
+cp .env.example .env   # задать ADMIN_PASSWORD
+npm run build
+npm start              # http://localhost:3000
 ```
 
-В `.env`:
+Админка: http://localhost:3000/admin
 
-| Переменная | Откуда |
-| --- | --- |
-| `DATABASE_URL` | Project Settings → Database → Connection string → URI. Direct connection или Session pooler, порт **5432**. |
-| `SUPABASE_URL` | Project Settings → API → Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API → `service_role` / secret |
+В карточке раздела поле «Страница сайта» связывает раздел с уже существующей страницей. Например, адрес `listovye-materialy` показывает товары на `/katalog/listovye-materialy.html`, `osb-3` — на странице ОСП-3. Общий список — на `/katalog.html`.
 
-Порт `6543` (transaction pooler) не подходит: скрипт выполняет DDL. Если хост `db.<ref>.supabase.co` не открывается, у проекта часто нет IPv4 на прямом подключении — возьмите Session pooler, порт 5432. Пароль со спецсимволами нужно percent-encode (`@` → `%40`).
+Если в `.env` заданы настоящие `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY`, админка пишет в Supabase. Иначе товары сохраняются локально в `data/catalog.json` — это только предпросмотр, файл в git не попадает.
 
-```bash
-npm run clean:dry
-npm run clean -- --yes
+Фото без Supabase лежат в `uploads/`. С Supabase они уходят в бакет `product-images`.
+
+## База Supabase
+
+Миграции в `supabase/migrations/` применяются по порядку. Каждую можно вставить в SQL Editor и выполнить:
+
+1. `20261017120000_clean_database.sql` — очищает всю схему `public` и политики приложения в Storage. Не удаляет файлы S3 и пользователей Authentication.
+2. `20261017120100_catalog.sql` — разделы, товары, `admin_users`, бакет фото.
+
+Повторно запускать очистку после наполнения каталога нельзя: она снова сотрёт разделы и товары.
+
+Ручная очистка с подтверждением, включая файлы Storage через API: `npm run clean:dry`, затем `npm run clean -- --yes`. Описание флагов — в выводе `--help`.
+
+Администратора Supabase Auth, если вход на сайт будет напрямую через Supabase, добавляют так:
+
+```sql
+insert into public.admin_users (user_id)
+select id from auth.users where email = 'admin@example.ru';
 ```
 
-Другие режимы:
-
-```bash
-npm run clean -- --yes --with-auth
-npm run clean -- --yes --all-storage --with-auth
-npm run clean -- --schema-only --yes
-npm run clean -- --storage-only --yes
-npm run clean -- --yes --keep-migrations
-```
-
-`CONFIRM=wipe` работает как `--yes`. Без `--yes` скрипт ничего не меняет.
-
-Ключ `service_role` обходит RLS. Не коммитьте `.env` и не подставляйте anon-ключ.
-
-## Только SQL Editor
-
-Если нет возможности запустить скрипт, схему можно очистить вручную:
-
-1. Dashboard → Storage → бакет `product-images` → Empty, затем Delete.
-2. SQL Editor → вставить [`supabase/clean.sql`](supabase/clean.sql) целиком → Run.
-
-Файл идемпотентен. Пользователей он не удаляет: строка `delete from auth.users` внизу закомментирована.
-
-Большие бакеты (больше 200 000 объектов) Dashboard может не очистить. Тогда, по [документации Storage](https://supabase.com/docs/guides/storage/management/delete-objects), синхронизируйте бакет с пустой папкой через S3-протокол: `aws s3 sync empty-dir/ s3://product-images --delete`.
+Сервер сайта ходит в базу ключом service role и этот шаг для `/admin` не требует.
 
 ## Проверка
 
 ```bash
 npm test
 ```
-
-Тест поднимает локальный Postgres, создаёт таблицы магазина и проверяет, что очистка опустошает `public`, не удаляет файл из `storage.objects` через SQL и не задевает чужую схему.
-
-Если SQL Editor пишет, что транзакция прервана, выполните `rollback;` и запустите файл ещё раз.
