@@ -1,5 +1,6 @@
-import { fail, json, readJson, requireAdmin, validId } from '../../../../../lib/http'
-import { applyImageFields, getStore, saveImage } from '../../../../../lib/server'
+import { attachSession, hasSiteHeader, openAdmin } from '../../../../../lib/auth'
+import { fail, json, readJson, validId } from '../../../../../lib/http'
+import { applyImageFields, saveImage } from '../../../../../lib/server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,28 +12,30 @@ function missing() {
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
-  const denied = requireAdmin(req)
-  if (denied) return denied
+  if (!hasSiteHeader(req)) return json({ error: 'Запрос отклонён' }, 403)
+  const opened = await openAdmin(req)
+  if ('response' in opened) return opened.response
   const { id } = await ctx.params
   if (!validId(id)) return missing()
   try {
     const body = await readJson(req)
-    const imageUrl = body.image_base64 ? await saveImage(body) : undefined
+    const imageUrl = body.image_base64 ? await saveImage(body, opened.session.client) : undefined
     applyImageFields(body, imageUrl)
-    return json(await (await getStore()).saveProduct(body, id))
+    return attachSession(json(await opened.session.store.saveProduct(body, id)), opened.session, req)
   } catch (err) {
-    return fail(err)
+    return attachSession(fail(err), opened.session, req)
   }
 }
 
 export async function DELETE(req: Request, ctx: Ctx) {
-  const denied = requireAdmin(req)
-  if (denied) return denied
+  if (!hasSiteHeader(req)) return json({ error: 'Запрос отклонён' }, 403)
+  const opened = await openAdmin(req)
+  if ('response' in opened) return opened.response
   const { id } = await ctx.params
   if (!validId(id)) return missing()
   try {
-    return json(await (await getStore()).deleteProduct(id))
+    return attachSession(json(await opened.session.store.deleteProduct(id)), opened.session, req)
   } catch (err) {
-    return fail(err)
+    return attachSession(fail(err), opened.session, req)
   }
 }

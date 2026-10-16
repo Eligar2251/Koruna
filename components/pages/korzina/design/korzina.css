@@ -1,0 +1,134 @@
+.csb-cart {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 72px;
+  color: #3d3d3d;
+  font-family: var(--t-text-font, Arial, sans-serif);
+}
+
+.csb-cart h1 {
+  margin: 0 0 22px;
+  color: #111;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+.csb-cart__empty {
+  margin: 0;
+  color: #606060;
+}
+
+.csb-cart__empty a,
+.csb-cart__back {
+  color: #1c6b5a;
+  text-decoration: none;
+}
+
+.csb-cart__list {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 28px;
+}
+
+.csb-cart__row {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.csb-cart__row img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  background: #f3f3f3;
+}
+
+.csb-cart__row h2 {
+  margin: 0 0 6px;
+  color: #111;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.csb-cart__row p {
+  margin: 0;
+  color: #1c6b5a;
+  font-weight: 650;
+}
+
+.csb-cart__qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.csb-cart__qty button,
+.csb-cart__remove {
+  border: 1px solid #e7e7e7;
+  background: #fff;
+  color: #111;
+  min-width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.csb-cart__form {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.csb-cart__form label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.csb-cart__form input,
+.csb-cart__form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e1e1e1;
+  padding: 12px 14px;
+  color: #111;
+  font: inherit;
+  background: #fff;
+}
+
+.csb-cart__submit {
+  justify-self: start;
+  border: 0;
+  border-radius: 30px;
+  background: #1c6b5a;
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  padding: 12px 22px;
+  cursor: pointer;
+}
+
+.csb-cart__error {
+  margin: 0;
+  color: #9a3b2f;
+}
+
+.csb-cart__total {
+  margin: 0 0 18px;
+  color: #111;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .csb-cart h1 {
+    font-size: 26px;
+  }
+
+  .csb-cart__row {
+    grid-template-columns: 64px 1fr;
+  }
+}

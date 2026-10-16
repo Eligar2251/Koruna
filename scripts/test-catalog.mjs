@@ -94,6 +94,90 @@ test('миграции очищают старую базу и создают к
   assert.equal(empty.rows[0].n, 0)
 })
 
+test('защита каталога не отдаёт скрытые строки анониму и не пускает в админы', async () => {
+  const db = new PGlite()
+  await db.exec(`
+    create schema auth;
+    create table auth.users (id uuid primary key);
+  `)
+  const catalog = await readFile(path.join(root, 'supabase/migrations/20261017120100_catalog.sql'), 'utf8')
+  const harden = await readFile(path.join(root, 'supabase/migrations/20261017130000_harden_catalog.sql'), 'utf8')
+  await db.exec(catalog)
+  await db.exec(harden)
+  await db.exec(`
+    insert into public.products (slug, name, is_active) values
+      ('open-item', 'Открытый', true),
+      ('hidden-item', 'Скрытый', false);
+  `)
+  const priv = await db.query(`
+    select
+      has_table_privilege('anon', 'public.admin_users', 'select') as anon_admin,
+      has_table_privilege('anon', 'public.products', 'insert') as anon_insert,
+      has_table_privilege('authenticated', 'public.admin_users', 'insert') as auth_admin_insert,
+      has_function_privilege('anon', 'public.set_updated_at()', 'execute') as anon_trigger
+  `)
+  assert.equal(priv.rows[0].anon_admin, false)
+  assert.equal(priv.rows[0].anon_insert, false)
+  assert.equal(priv.rows[0].auth_admin_insert, false)
+  assert.equal(priv.rows[0].anon_trigger, false)
+  await db.exec('set role anon')
+  const hidden = await db.query("select count(*)::int as n from public.products where slug = 'hidden-item'")
+  const open = await db.query("select count(*)::int as n from public.products where slug = 'open-item'")
+  assert.equal(hidden.rows[0].n, 0)
+  assert.equal(open.rows[0].n, 1)
+  await assert.rejects(() => db.exec("insert into public.products (slug, name) values ('hack', 'Чужой')"))
+  await db.exec('reset role')
+})
+
 test('stripExternalAnchors не трогает адрес без протокола', () => {
   assert.equal(stripExternalAnchors('<a href="/admin">Админка</a>'), '<a href="/admin">Админка</a>')
+})
+
+test('назначение администратора и заказы закрыты от анонима, каталог наполнен', async () => {
+  const db = new PGlite()
+  await db.exec(`
+    create schema auth;
+    create table auth.users (id uuid primary key);
+    create function auth.uid() returns uuid language sql as $$ select '11111111-1111-1111-1111-111111111111'::uuid $$;
+  `)
+  const catalog = await readFile(path.join(root, 'supabase/migrations/20261017120100_catalog.sql'), 'utf8')
+  const harden = await readFile(path.join(root, 'supabase/migrations/20261017130000_harden_catalog.sql'), 'utf8')
+  const orders = await readFile(path.join(root, 'supabase/migrations/20261017140000_orders_staff.sql'), 'utf8')
+  const seed = await readFile(path.join(root, 'supabase/migrations/20261017140100_seed_catalog.sql'), 'utf8')
+  await db.exec(catalog)
+  await db.exec(harden)
+  await db.exec(orders)
+  await db.exec(seed)
+  const filled = await db.query('select count(*)::int as n from public.products')
+  assert.ok(filled.rows[0].n >= 16)
+  await db.exec(`
+    insert into auth.users (id) values
+      ('11111111-1111-1111-1111-111111111111'),
+      ('22222222-2222-2222-2222-222222222222');
+    insert into public.admin_users (user_id) values ('11111111-1111-1111-1111-111111111111');
+  `)
+  await db.exec('set role authenticated')
+  await db.exec(`
+    select public.grant_admin(
+      '22222222-2222-2222-2222-222222222222',
+      'new@csb.local',
+      'Новый',
+      'eyJhbGciOiJIUzI1NiJ9.eyJ0eXAiOiJwd2QifQ.signature-value'
+    );
+  `)
+  const staff = await db.query('select email from public.list_staff()')
+  assert.equal(staff.rows[0].email, 'new@csb.local')
+  await db.exec('reset role')
+  await db.exec('set role anon')
+  await assert.rejects(() => db.query('select * from public.staff'))
+  await assert.rejects(() => db.query('select * from public.orders'))
+  await assert.rejects(() => db.exec(`
+    select public.grant_admin(
+      '22222222-2222-2222-2222-222222222222',
+      'new@csb.local',
+      'Новый',
+      'eyJhbGciOiJIUzI1NiJ9.eyJ0eXAiOiJwd2QifQ.signature-value'
+    )
+  `))
+  await db.exec('reset role')
 })

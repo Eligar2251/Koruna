@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Сайт РегионЛес на Next.js: витрина, админка и каталог Supabase",
+  "description": "Сайт ЦСБ на Next.js: витрина, админка и каталог",
   "engines": {
     "node": ">=20"
   },
@@ -14,7 +14,7 @@
     "strip": "node scripts/strip-site.mjs",
     "clean": "node scripts/clean-db.mjs",
     "clean:dry": "node scripts/clean-db.mjs --dry-run",
-    "test": "node --test scripts/test-clean.mjs scripts/test-catalog.mjs"
+    "test": "node --test scripts/test-clean.mjs scripts/test-catalog.mjs scripts/test-accounts.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
