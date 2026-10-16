@@ -1,18 +1,6 @@
-# зависимости и сборка
 node_modules/
-.next/
-out/
-build/
-coverage/
-*.tsbuildinfo
-next-env.d.ts
-
-# окружение
 .env
 .env.*
 !.env.example
-
-# системные файлы
+*.log
 .DS_Store
-Thumbs.db
-.vercel
