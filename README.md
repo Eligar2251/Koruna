@@ -1,74 +1,81 @@
-# ЦСБ — интернет-магазин строительных материалов
+# Очистка базы Supabase
 
-Next.js (App Router) + React + TypeScript + Supabase, менеджер пакетов pnpm.
+Репозиторий содержит только очистку базы проекта Koruna. Кода магазина здесь больше нет.
 
-## Что внутри
+Скрипт необратимо удаляет данные. Сначала смотрите план (`--dry-run`), затем запускайте с `--yes`.
 
-- Каталог: категории, товары, фото, цены (или «Цена по запросу»).
-- Корзина в стиле Tilda: выдвижная панель, количество, итог, оформление заявки. Хранится в браузере, без регистрации.
-- Заявки: заказ из корзины, заказ звонка, сообщение из формы контактов. Посетитель выбирает удобный способ связи: телефон, почта, Telegram, WhatsApp или Max.
-- Админка `/admin`: вход по почте и паролю, товары (создание, редактирование, публикация, фото), разделы, заявки со статусами и внутренними заметками.
-- Юридические страницы: политика обработки ПДн, согласие на обработку, политика cookie. Баннер cookie.
-- Папка `public/_ext` с внешними ресурсами сайта (шрифт Inter, подключается локально).
+## Что удаляется
 
-## Быстрый старт
+По умолчанию:
+
+- всё в схеме `public`: таблицы, представления, функции, типы, последовательности;
+- политики Storage, которые относятся к бакету `product-images` или вызывают `is_admin()`;
+- сам бакет `product-images` и файлы в нём — через Storage API, чтобы объекты удалились и из S3;
+- история в `supabase_migrations`, если эта схема есть.
+
+Раньше магазин хранил здесь `admin_users`, `categories`, `products`, `leads`, типы `lead_type` и `lead_status`, функции `is_admin()` и `set_updated_at()`, фото в `product-images/products/`. Скрипт не ищет их по именам: он очищает всю схему `public`.
+
+Не удаляется без отдельного флага:
+
+- пользователи Authentication (`--with-auth`);
+- другие бакеты (`--all-storage`);
+- сам проект Supabase, схемы `auth`, `storage`, `extensions` и объекты расширений.
+
+SQL намеренно не делает `delete from storage.objects`. Такой запрос оставляет файлы в S3, и они продолжают тарифицироваться. На новых проектах он ещё и запрещён триггером.
+
+## Запуск
 
 ```bash
-pnpm install
-cp .env.example .env.local   # заполнить значения из Supabase
-pnpm dev                     # http://localhost:3000
+npm install
+cp .env.example .env
 ```
 
-Переменные окружения:
+В `.env`:
 
-| Имя | Описание |
+| Переменная | Откуда |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL проекта Supabase (Project Settings → API) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Публичный anon-ключ |
-| `NEXT_PUBLIC_SITE_URL` | Адрес сайта без слеша в конце |
+| `DATABASE_URL` | Project Settings → Database → Connection string → URI. Direct connection или Session pooler, порт **5432**. |
+| `SUPABASE_URL` | Project Settings → API → Project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Project Settings → API → `service_role` / secret |
 
-Service-role ключ в проекте не используется и не должен попадать в переменные окружения сайта.
+Порт `6543` (transaction pooler) не подходит: скрипт выполняет DDL. Если хост `db.<ref>.supabase.co` не открывается, у проекта часто нет IPv4 на прямом подключении — возьмите Session pooler, порт 5432. Пароль со спецсимволами нужно percent-encode (`@` → `%40`).
 
-## База данных Supabase
-
-Миграции лежат в `supabase/migrations/` и применяются по порядку. Каждый файл можно вставить в SQL Editor и выполнить (`Run`):
-
-1. `20261012100000_init.sql` — таблицы, функция `is_admin()`, права доступа (RLS)
-2. `20261012100100_storage.sql` — бакет фото товаров
-3. `20261012100200_seed_categories.sql` — стартовые разделы каталога (их можно переименовать в админке)
-
-Проверка миграций без Supabase (PGlite, Postgres в WASM): `pnpm db:test`.
-
-### Создание администратора
-
-Регистрации на сайте нет. Администратора создаём вручную:
-
-1. Supabase → Authentication → Users → **Add user** → указать почту и пароль (галочку «Auto Confirm User» поставить).
-2. В SQL Editor выполнить, подставив почту:
-
-```sql
-insert into public.admin_users (user_id)
-select id from auth.users where email = 'admin@example.ru';
+```bash
+npm run clean:dry
+npm run clean -- --yes
 ```
 
-После этого вход доступен по адресу `/admin/login`.
+Другие режимы:
 
-## Деплой
+```bash
+npm run clean -- --yes --with-auth
+npm run clean -- --yes --all-storage --with-auth
+npm run clean -- --schema-only --yes
+npm run clean -- --storage-only --yes
+npm run clean -- --yes --keep-migrations
+```
 
-### Vercel (тест)
+`CONFIRM=wipe` работает как `--yes`. Без `--yes` скрипт ничего не меняет.
 
-1. Импортировать репозиторий GitHub в Vercel.
-2. В Settings → Environment Variables добавить три переменные из таблицы выше.
-3. Deploy. Далее каждый push в ветку деплоится автоматически.
+Ключ `service_role` обходит RLS. Не коммитьте `.env` и не подставляйте anon-ключ.
 
-### Timeweb (продакшен)
+## Только SQL Editor
 
-Для персональных данных граждан РФ базу нужно разместить на территории России (ст. 18 ч. 5 152-ФЗ). Supabase и Vercel размещаются за пределами РФ. Перед приёмом реальных заявок перенесите базу на российский хостинг (например, PostgreSQL в Timeweb Cloud) и обновите переменные окружения.
+Если нет возможности запустить скрипт, схему можно очистить вручную:
 
-## Перед запуском: чек-лист
+1. Dashboard → Storage → бакет `product-images` → Empty, затем Delete.
+2. SQL Editor → вставить [`supabase/clean.sql`](supabase/clean.sql) целиком → Run.
 
-- Заполнить `src/config/site.ts` (контакты и реквизиты): телефон, почта, адрес, часы работы, мессенджеры, ИНН, КПП, ОГРН, банковские реквизиты. Пустые поля на сайте скрываются автоматически.
-- Проверить тексты юридических страниц (`src/app/privacy`, `src/app/consent`, `src/app/cookies`) у юриста.
-- Уведомить Роскомнадзор об обработке персональных данных (реестр операторов), если это требуется для вашей деятельности.
-- Перенести базу данных на территорию РФ до приёма реальных персональных данных.
-- Наполнить каталог товарами в админке и опубликовать их.
+Файл идемпотентен. Пользователей он не удаляет: строка `delete from auth.users` внизу закомментирована.
+
+Большие бакеты (больше 200 000 объектов) Dashboard может не очистить. Тогда, по [документации Storage](https://supabase.com/docs/guides/storage/management/delete-objects), синхронизируйте бакет с пустой папкой через S3-протокол: `aws s3 sync empty-dir/ s3://product-images --delete`.
+
+## Проверка
+
+```bash
+npm test
+```
+
+Тест поднимает локальный Postgres, создаёт таблицы магазина и проверяет, что очистка опустошает `public`, не удаляет файл из `storage.objects` через SQL и не задевает чужую схему.
+
+Если SQL Editor пишет, что транзакция прервана, выполните `rollback;` и запустите файл ещё раз.
