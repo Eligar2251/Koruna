@@ -1,10 +1,11 @@
+import { attachSession, openAdmin } from '../../../../lib/auth'
 import { json } from '../../../../lib/http'
-import { getStore, isAdmin } from '../../../../lib/server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET(req: Request) {
-  const store = await getStore()
-  return json({ ok: isAdmin(req), mode: store.mode })
+  const opened = await openAdmin(req)
+  if ('response' in opened) return json({ ok: false, mode: 'supabase' })
+  return attachSession(json({ ok: true, mode: 'supabase' }), opened.session, req)
 }

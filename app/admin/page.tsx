@@ -97,6 +97,7 @@ const emptyProduct = (): ProductForm => ({
 
 async function api(url: string, options: RequestInit = {}) {
   const headers = new Headers(options.headers)
+  headers.set('x-csb-request', '1')
   if (options.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
   const response = await fetch(url, {
     ...options,
@@ -130,7 +131,7 @@ export default function AdminPage() {
 
   function showApp(session: { mode?: string }) {
     setAuthed(true)
-    setMode(session.mode === 'supabase' ? 'Запись в Supabase' : 'Локальный предпросмотр, Supabase не подключён')
+    setMode('Запись в Supabase, вход по JWT')
   }
 
   async function load() {
@@ -155,11 +156,11 @@ export default function AdminPage() {
 
   async function onLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const password = new FormData(event.currentTarget).get('password')
+    const form = new FormData(event.currentTarget)
     try {
       await api('/api/admin/login', {
         method: 'POST',
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email: form.get('email'), password: form.get('password') }),
       })
       showApp(await api('/api/admin/session'))
       await load()
@@ -263,13 +264,17 @@ export default function AdminPage() {
   return (
     <main id="koruna-admin" className="admin">
       <section id="login" className="panel login" hidden={authed}>
-        <p className="eyebrow">РегионЛес</p>
+        <p className="eyebrow">ЦСБ</p>
         <h1>Товары и разделы</h1>
-        <p className="lead">Здесь добавляются разделы и товары. На сайте остаются только опубликованные.</p>
+        <p className="lead">Вход по почте и паролю из Supabase. На сайте остаются только опубликованные товары.</p>
         <form id="login-form" onSubmit={onLogin}>
           <label>
+            Почта
+            <input type="email" name="email" autoComplete="username" required maxLength={200} />
+          </label>
+          <label>
             Пароль
-            <input type="password" name="password" autoComplete="current-password" required />
+            <input type="password" name="password" autoComplete="current-password" required maxLength={200} />
           </label>
           <button type="submit">Войти</button>
           <p id="login-error" className="error" hidden={!loginError}>{loginError}</p>

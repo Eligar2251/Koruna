@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = {
-  title: 'РегионЛес',
+  title: 'ЦСБ — Центральная Строительная База',
 }
 
 export const viewport: Viewport = {
