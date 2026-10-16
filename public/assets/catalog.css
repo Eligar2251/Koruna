@@ -1,0 +1,149 @@
+.koruna-nolink {
+  cursor: default;
+}
+
+.koruna-rec {
+  padding: 28px 0 64px;
+  background: #fff;
+}
+
+.koruna-rec:has(.koruna-catalog[data-mode="home"]) {
+  display: none;
+}
+
+.koruna-catalog {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  color: #3d3d3d;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.koruna-catalog__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.koruna-catalog__head h2 {
+  margin: 0;
+  color: #111;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+.koruna-catalog__head p,
+.koruna-catalog__state {
+  margin: 8px 0 0;
+  color: #606060;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.koruna-catalog__admin {
+  color: #2f5491;
+  font-size: 14px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(47, 84, 145, 0.35);
+}
+
+.koruna-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.koruna-chips span {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #f0f0f0;
+  color: #3d3d3d;
+  font-size: 13px;
+}
+
+.koruna-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.koruna-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.koruna-card__media {
+  aspect-ratio: 1;
+  background: #f3f3f3;
+}
+
+.koruna-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.koruna-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 16px;
+  flex: 1;
+}
+
+.koruna-card__body h3 {
+  margin: 0;
+  color: #111;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 620;
+}
+
+.koruna-card__meta,
+.koruna-card__price {
+  margin: 0;
+  font-size: 14px;
+}
+
+.koruna-card__price {
+  color: #2f5491;
+  font-weight: 650;
+}
+
+.koruna-card__text {
+  margin: 0;
+  color: #606060;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.koruna-card__more {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #2f5491;
+  font: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .koruna-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .koruna-catalog__head { display: block; }
+  .koruna-catalog__head h2 { font-size: 26px; }
+  .koruna-grid { grid-template-columns: 1fr; }
+}
