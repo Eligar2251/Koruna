@@ -1,8 +1,16 @@
+import { randomBytes } from 'node:crypto'
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { createSupabaseStore, type CatalogStore } from '../server/store.mjs'
+import { createAccountBook, type AccountBook, readAccess, signAccess } from '../server/accounts.mjs'
+
+export { signAccess }
+import { createFileStore, createSupabaseStore, type CatalogStore } from '../server/store.mjs'
 import { json } from './http'
 import { readCookie } from './server'
+
+const accountsFile = path.join(process.cwd(), 'data', 'admins.json')
 
 const ACCESS = 'csb_access'
 const REFRESH = 'csb_refresh'
@@ -10,10 +18,11 @@ const attempts = new Map<string, { count: number; reset: number }>()
 
 export type AdminContext = {
   store: CatalogStore
-  client: SupabaseClient
+  client: SupabaseClient | null
   access: string
   refresh: string
   refreshed: boolean
+  mode: 'file' | 'supabase'
 }
 
 export function configuredSupabase() {
@@ -99,9 +108,43 @@ async function userFromToken(client: SupabaseClient, access: string) {
   return result.data.user
 }
 
+export function accountBook() {
+  return createAccountBook(accountsFile)
+}
+
+export async function ensureLocalAdmin(book: AccountBook = accountBook()) {
+  const current = await book.list()
+  if (current.length) return book
+  const email = (process.env.ADMIN_EMAIL || 'admin@csb.local').trim().toLowerCase()
+  const given = process.env.ADMIN_PASSWORD || ''
+  const password = given.length >= 8 && given !== 'replace-me' ? given : randomBytes(9).toString('base64url')
+  await book.create({ email, name: 'Администратор', password })
+  if (password !== given) {
+    await mkdir(path.dirname(accountsFile), { recursive: true })
+    await writeFile(path.join(path.dirname(accountsFile), 'admin-password.txt'), `${email}\n${password}\n`, { mode: 0o600 })
+  }
+  return book
+}
+
 export async function openAdmin(req: Request): Promise<{ session: AdminContext } | { response: NextResponse }> {
   const remote = configuredSupabase()
-  if (!remote) return { response: json({ error: 'Задайте SUPABASE_URL и SUPABASE_ANON_KEY' }, 503) }
+  if (!remote) {
+    const access = readCookie(req, ACCESS)
+    const payload = readAccess(access)
+    if (!payload) return { response: json({ error: 'Нужен вход' }, 401) }
+    const account = await accountBook().byId(payload.sub)
+    if (!account) return { response: json({ error: 'Нужен вход' }, 401) }
+    return {
+      session: {
+        store: createFileStore(path.join(process.cwd(), 'data', 'catalog.json')),
+        client: null,
+        access,
+        refresh: access,
+        refreshed: false,
+        mode: 'file',
+      },
+    }
+  }
   const client = supabaseClient()
   if (!client) return { response: json({ error: 'Задайте SUPABASE_URL и SUPABASE_ANON_KEY' }, 503) }
 
@@ -133,6 +176,7 @@ export async function openAdmin(req: Request): Promise<{ session: AdminContext }
       access,
       refresh,
       refreshed,
+      mode: 'supabase',
     },
   }
 }

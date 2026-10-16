@@ -128,16 +128,25 @@ export default function AdminPage() {
   const [productForm, setProductForm] = useState<ProductForm>(emptyProduct)
   const [preview, setPreview] = useState('')
   const [fileKey, setFileKey] = useState(0)
+  const [staff, setStaff] = useState<Array<{ id?: string; user_id?: string; email: string; name: string }>>([])
+  const [orders, setOrders] = useState<Array<{ id: string; customer_name: string; phone: string; total: number | null; created_at: string; items?: unknown[] }>>([])
+  const [staffError, setStaffError] = useState('')
 
   function showApp(session: { mode?: string }) {
     setAuthed(true)
-    setMode('Запись в Supabase, вход по JWT')
+    setMode(session.mode === 'file' ? 'Файл' : 'Supabase')
   }
 
   async function load() {
     const data = await api('/api/admin/catalog')
     setCategories(data.categories || [])
     setProducts(data.products || [])
+    const [staffResult, orderResult] = await Promise.allSettled([
+      api('/api/admin/staff'),
+      api('/api/admin/orders'),
+    ])
+    setStaff(staffResult.status === 'fulfilled' ? staffResult.value.staff || [] : [])
+    setOrders(orderResult.status === 'fulfilled' ? orderResult.value.orders || [] : [])
   }
 
   useEffect(() => {
@@ -265,8 +274,7 @@ export default function AdminPage() {
     <main id="koruna-admin" className="admin">
       <section id="login" className="panel login" hidden={authed}>
         <p className="eyebrow">ЦСБ</p>
-        <h1>Товары и разделы</h1>
-        <p className="lead">Вход по почте и паролю из Supabase. На сайте остаются только опубликованные товары.</p>
+        <h1>Вход</h1>
         <form id="login-form" onSubmit={onLogin}>
           <label>
             Почта
@@ -289,7 +297,7 @@ export default function AdminPage() {
           </div>
           <div className="top-actions">
             <span id="mode" className="mode">{mode}</span>
-            <a href="/katalog.html">На сайт</a>
+            <a href="/">На сайт</a>
             <button type="button" id="logout" onClick={onLogout}>Выйти</button>
           </div>
         </header>
@@ -540,6 +548,65 @@ export default function AdminPage() {
                   >
                     Удалить
                   </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+        <div className="layout stack">
+          <section className="panel">
+            <h2>Новый администратор</h2>
+            <form
+              onSubmit={async (event) => {
+                event.preventDefault()
+                const form = event.currentTarget
+                const data = new FormData(form)
+                try {
+                  await api('/api/admin/staff', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                      name: data.get('name'),
+                      email: data.get('email'),
+                      password: data.get('password'),
+                    }),
+                  })
+                  form.reset()
+                  setStaffError('')
+                  await load()
+                } catch (err) {
+                  setStaffError(err instanceof Error ? err.message : 'Ошибка запроса')
+                }
+              }}
+            >
+              <label>
+                Имя
+                <input name="name" required maxLength={120} />
+              </label>
+              <label>
+                Почта
+                <input name="email" type="email" required maxLength={200} autoComplete="off" />
+              </label>
+              <label>
+                Пароль
+                <input name="password" type="password" required minLength={8} maxLength={200} autoComplete="new-password" />
+              </label>
+              <button type="submit">Назначить</button>
+              <p className="error" hidden={!staffError}>{staffError}</p>
+            </form>
+            <ul className="list">
+              {staff.map((person) => (
+                <li key={person.id || person.user_id || person.email}>
+                  <span>{person.name} · {person.email}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="panel">
+            <h2>Заказы</h2>
+            <ul className="list">
+              {orders.map((order) => (
+                <li key={order.id}>
+                  <span>{order.customer_name} · {order.phone} · {order.total ?? 'по запросу'} · {new Date(order.created_at).toLocaleString('ru-RU')}</span>
                 </li>
               ))}
             </ul>

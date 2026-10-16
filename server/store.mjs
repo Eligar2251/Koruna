@@ -84,11 +84,17 @@ export function productInput(body, fallbackSlug) {
   return input
 }
 
+function localAsset(text) {
+  if (text.includes('..') || text.includes('\\') || text.includes('//') || text.includes('?') || text.includes('#')) return false
+  if (!/^\/[a-zA-Z0-9._/-]+$/.test(text)) return false
+  return text.startsWith('/uploads/') || text.startsWith('/assets/') || text.startsWith('/_static.tildacdn.com/')
+}
+
 function cleanImageUrl(value) {
   if (value === null || value === undefined || value === '') return null
   const text = String(value).trim()
   if (text.length > 2000) throw new Error('Некорректный адрес фото')
-  if (text.startsWith('/uploads/') && !text.includes('..') && !text.includes('\\') && !text.includes('//')) return text
+  if (localAsset(text)) return text
   let url
   try {
     url = new URL(text)

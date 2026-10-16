@@ -1,11 +1,13 @@
 import { randomBytes } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { access, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { seedFileStore } from '../server/seed.mjs'
 import { createFileStore, createSupabaseStore, type CatalogStore } from '../server/store.mjs'
 import { configuredSupabase, supabaseClient } from './auth'
 
 const dataFile = path.join(process.cwd(), 'data', 'catalog.json')
+const seedMarker = path.join(process.cwd(), 'data', 'catalog.seeded')
 const uploadsDir = path.join(process.cwd(), 'uploads')
 const IMAGE_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -19,14 +21,28 @@ export type { CatalogStore }
 let storePromise: Promise<CatalogStore> | null = null
 
 export function getStore() {
-  if (!storePromise) storePromise = openStore()
+  if (!storePromise) {
+    storePromise = openStore().catch((err) => {
+      storePromise = null
+      throw err
+    })
+  }
   return storePromise
 }
 
 async function openStore() {
   const client = supabaseClient()
-  if (!client) return createFileStore(dataFile)
-  return createSupabaseStore(client)
+  if (client) return createSupabaseStore(client)
+  const store = createFileStore(dataFile)
+  try {
+    await access(seedMarker)
+  } catch {
+    const list = await store.adminList()
+    if (!list.products.length) await seedFileStore(store)
+    await mkdir(path.dirname(seedMarker), { recursive: true })
+    await writeFile(seedMarker, '1')
+  }
+  return store
 }
 
 export function readCookie(req: Request, name: string) {

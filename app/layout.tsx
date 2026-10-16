@@ -1,8 +1,13 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ЦСБ — Центральная Строительная База',
+  title: {
+    default: 'ЦСБ — Центральная Строительная База',
+    template: '%s — ЦСБ',
+  },
+  icons: { icon: '/assets/favicon.png' },
 }
 
 export const viewport: Viewport = {
@@ -13,9 +18,6 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ru">
-      <head>
-        <link rel="stylesheet" href="/assets/admin.css" />
-      </head>
       <body>{children}</body>
     </html>
   )

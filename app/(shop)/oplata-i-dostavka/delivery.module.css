@@ -1,0 +1,24 @@
+.page { padding: 28px 0 8px; display: grid; gap: 22px; }
+
+.page h1 { margin: 0; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.03em; }
+
+.page h2 { margin: 0 0 8px; font-size: 22px; }
+
+.page p, .page li { margin: 0 0 8px; max-width: 44rem; }
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+}
+
+.card {
+  padding: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.card a { color: var(--pine); }
+
+.card a:hover { color: var(--pine-dark); }

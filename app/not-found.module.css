@@ -1,0 +1,14 @@
+.box { padding: 48px 0; display: grid; gap: 16px; }
+
+.box h1 { margin: 0; font-size: 36px; }
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--pine);
+  color: #fff;
+  width: fit-content;
+}

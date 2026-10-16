@@ -1,0 +1,35 @@
+.page { padding: 28px 0 8px; display: grid; gap: 16px; max-width: 640px; }
+
+.page h1 { margin: 0; font-size: clamp(32px, 4vw, 44px); letter-spacing: -0.03em; }
+
+.form { display: grid; gap: 12px; }
+
+.form label { display: grid; gap: 6px; font-size: 14px; }
+
+.form input, .form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+.form button, .link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--pine);
+  color: #fff;
+  cursor: pointer;
+}
+
+.form button:hover, .link:hover { background: var(--pine-dark); }
+
+.error { margin: 0; color: var(--danger); }
+
+.ok { margin: 0; font-size: 18px; }

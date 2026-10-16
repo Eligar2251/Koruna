@@ -1,0 +1,11 @@
+.top { padding: 28px 0 8px; }
+
+.top h1 { margin: 0 0 8px; font-size: clamp(32px, 4vw, 44px); letter-spacing: -0.03em; }
+
+.crumb { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+
+.crumb a:hover { color: var(--pine); }
+
+.block { padding: 22px 0 8px; }
+
+.block h2 { margin: 0 0 16px; font-size: 24px; }

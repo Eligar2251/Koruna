@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   skipTrailingSlashRedirect: true,
   serverExternalPackages: ['@supabase/supabase-js', 'pg'],
+  async redirects() {
+    return [{ source: '/:path*.html', destination: '/:path*', permanent: false }]
+  },
 }
 
 export default nextConfig

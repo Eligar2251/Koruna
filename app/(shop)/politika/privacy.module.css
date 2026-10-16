@@ -1,0 +1,5 @@
+.page { padding: 28px 0 8px; display: grid; gap: 12px; max-width: 44rem; }
+
+.page h1 { margin: 0 0 6px; font-size: clamp(32px, 4vw, 44px); letter-spacing: -0.03em; }
+
+.page p { margin: 0; }
