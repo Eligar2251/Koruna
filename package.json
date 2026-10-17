@@ -14,7 +14,7 @@
     "strip": "node scripts/strip-site.mjs",
     "clean": "node scripts/clean-db.mjs",
     "clean:dry": "node scripts/clean-db.mjs --dry-run",
-    "test": "node --test scripts/test-clean.mjs scripts/test-catalog.mjs scripts/test-accounts.mjs scripts/test-config-layout.mjs scripts/test-inventory.mjs scripts/test-site-operations.mjs scripts/test-navigation.mjs scripts/test-intake-security.mjs scripts/test-admin-setup.mjs",
+    "test": "node --test scripts/test-clean.mjs scripts/test-catalog.mjs scripts/test-accounts.mjs scripts/test-config-layout.mjs scripts/test-inventory.mjs scripts/test-site-operations.mjs scripts/test-navigation.mjs scripts/test-intake-security.mjs scripts/test-admin-setup.mjs scripts/test-admin-login.mjs",
     "admin:create": "node scripts/create-admin.mjs",
     "admin:setup": "node scripts/setup-admin-entry.mjs",
     "admin:check": "node scripts/setup-admin-entry.mjs --check",

@@ -135,31 +135,36 @@ export default function AdminPage() {
   const [globalError, setGlobalError] = useState('')
   const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
   const tabs: Record<string, string> = { products: 'Товары', categories: 'Категории', orders: 'Заказы', stock: 'Складской учёт', staff: 'Администраторы', bulk: 'Массовый редактор', settings: 'Настройки сайта' }
   const [staffError, setStaffError] = useState('')
 
-  function showApp(session: { mode?: string; role?: string }) {
+  function showApp(session: { ok?: boolean; mode?: string; role?: string }) {
+    if (session.ok !== true) throw new Error('Вход не завершён: браузер не сохранил или сервер не подтвердил сессию. Разрешите cookie для сайта, откройте секретный адрес заново и повторите вход.')
     setCurrentRole(session.role || 'admin')
     setAuthed(true)
     setMode(session.mode === 'file' ? 'Локальный режим' : 'Supabase')
   }
 
   async function load() {
-    const data = await api('/api/admin/catalog')
-    setCategories(data.categories || [])
-    setProducts(data.products || [])
+    setLoading(true)
     const results = await Promise.allSettled([
-      api('/api/admin/staff'), api('/api/admin/orders'), api('/api/admin/inventory'),
+      api('/api/admin/catalog'), api('/api/admin/staff'), api('/api/admin/orders'), api('/api/admin/inventory'),
     ])
-    const errors: Record<string, string> = {}
-    const keys = ['staff', 'orders', 'stock']
-    results.forEach((result, index) => {
+    if (results[0].status === 'fulfilled') {
+      setCategories(results[0].value.categories || [])
+      setProducts(results[0].value.products || [])
+      setGlobalError('')
+    } else setGlobalError('Вход выполнен, но каталог не загрузился: ' + (results[0].reason?.message || 'Проверьте миграции и подключение к БД.'))
+    const errors: Record<string,string> = {}, keys = ['staff','orders','stock']
+    results.slice(1).forEach((result,index) => {
       if (result.status === 'rejected') errors[keys[index]] = result.reason?.message || 'Не удалось загрузить раздел'
     })
     setSectionErrors(errors)
-    if (results[0].status === 'fulfilled') setStaff(results[0].value.staff || [])
-    if (results[1].status === 'fulfilled') setOrders(results[1].value.orders || [])
-    if (results[2].status === 'fulfilled') setMovements(results[2].value.movements || [])
+    if (results[1].status === 'fulfilled') setStaff(results[1].value.staff || [])
+    if (results[2].status === 'fulfilled') setOrders(results[2].value.orders || [])
+    if (results[3].status === 'fulfilled') setMovements(results[3].value.movements || [])
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -180,7 +185,10 @@ export default function AdminPage() {
 
   async function onLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (saving) return
     const form = new FormData(event.currentTarget)
+    setLoginError('')
+    setGlobalError('')
     setSaving(true)
     try {
       await api('/api/admin/login', {
@@ -308,9 +316,15 @@ export default function AdminPage() {
             <input type="password" name="password" autoComplete="current-password" required maxLength={200} />
           </label>
           <button type="submit" disabled={saving}>{saving ? 'Входим…' : 'Войти в панель'}</button>
-          <p id="login-error" className="error" hidden={!loginError}>{loginError}</p>
+          <p id="login-error" className="error" role="alert" hidden={!loginError}>{loginError}</p>
         </form>
-        <p className="login-help">{mode === 'Supabase' ? 'Вход через Supabase Auth. Пользователь должен быть назначен администратором в admin_users. Локальная учётная запись здесь не действует.' : 'Локальный режим. Создать или восстановить администратора можно в терминале сервера: npm run admin:create. Универсального пароля нет.'}</p>
+        <p className="login-help">{mode === 'Supabase' ? 'Вход через Supabase Auth. Пользователь должен быть назначен администратором в admin_users. Локальная учётная запись здесь не действует.' : mode === 'Локальный режим' ? 'Локальный режим. Создать или восстановить администратора можно в терминале сервера: npm run admin:create. Универсального пароля нет.' : 'Проверяем режим подключения. Для Supabase нужен пользователь Authentication с правами в public.admin_users.'}</p>
+        {mode === 'Supabase' && <details className="login-help"><summary>Что проверить, если пользователь Supabase не входит?</summary><ol>
+          <li>В Authentication → Users пользователь создан и его почта подтверждена.</li>
+          <li>В Table Editor → public.admin_users есть строка: user_id равен User UID из Authentication (не почте), role — owner или admin.</li>
+          <li>SUPABASE_URL и SUPABASE_ANON_KEY в серверном env относятся к этому же проекту; после изменения env сайт перезапущен.</li>
+          <li>Если поля role нет, примените добавочную миграцию 20261017170000_staff_roles_mail.sql. Очистку БД не повторяйте и RLS не отключайте.</li>
+        </ol></details>}
         <a className="back-link" href="/">← Вернуться на сайт</a>
       </section>
 
@@ -331,6 +345,7 @@ export default function AdminPage() {
 
         {authed && <LiveOrders onOrders={setOrders} />}
         <div className="stats"><div><span>Товары</span><strong>{products.length}</strong><small>В каталоге базы</small></div><div><span>Категории</span><strong>{categories.length}</strong><small>Направления поставок</small></div><div><span>Новые заказы</span><strong>{orders.filter(o => o.status === 'new').length}</strong><small>Ожидают обработки</small></div><div><span>Нет на складе</span><strong>{products.filter(p => p.stock_quantity === 0).length}</strong><small>Требуется пополнение</small></div></div>
+        {loading && <p role="status">Загружаем данные панели…</p>}
         {notice && <p className="success" role="status">{notice}</p>}
         {globalError && <p className="error" role="alert">{globalError}</p>}
         {sectionErrors[tab] && <p className="error" role="alert">{sectionErrors[tab]}. Проверьте подключение и применение миграций Supabase.</p>}

@@ -1,3 +1,4 @@
+import { createSupabaseFetch } from '../server/supabase-fetch.mjs'
 import { adminEntry, verifyGateToken, GATE_COOKIE } from '../server/admin-gate.mjs'
 import { readSupabaseConfig } from '../server/supabase-config.mjs'
 import path from 'node:path'
@@ -40,7 +41,7 @@ export function supabaseClient(accessToken?: string) {
   if (!remote) return null
   return createClient(remote.url, remote.key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    global: accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined,
+    global: { fetch: createSupabaseFetch(), ...(accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : {}) },
   })
 }
 
