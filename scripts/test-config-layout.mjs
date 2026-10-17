@@ -17,10 +17,12 @@ async function stylesIn(dir) {
   return files
 }
 
-test('пример окружения требует только Supabase URL и anon key', async () => {
+test('пример окружения: БД только URL/anon, закрытая панель задаётся напрямую в env', async () => {
   const env = await read('.env.example')
   const enabled = [...env.matchAll(/^([A-Z_]+)=/gm)].map((match) => match[1])
-  assert.deepEqual(enabled, ['SUPABASE_URL', 'SUPABASE_ANON_KEY'])
+  assert.deepEqual(enabled, ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'ADMIN_PATH', 'JWT_SECRET'])
+  assert.match(env, /^ADMIN_PATH=$/m)
+  assert.match(env, /^JWT_SECRET=$/m)
   assert.doesNotMatch(env, /DATABASE_URL|SUPABASE_DB_URL|ADMIN_PASSWORD/)
   // Runtime must not regain a service-role or direct-Postgres dependency.
   for (const file of ['lib/auth.ts', 'lib/server.ts']) {

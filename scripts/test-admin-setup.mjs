@@ -307,3 +307,34 @@ test("npm alias содержит флаги в самом скрипте и не
   );
   assert.equal(pkg.dependencies.dotenv, undefined);
 });
+
+test("ручной env используется напрямую, без setup и без изменения файла", () =>
+  temporary(async (root) => {
+    const file = path.join(root, ".env"),
+      text = `ADMIN_PATH=${entry}\r\nJWT_SECRET=${secret}\r\n`;
+    await writeFile(file, text);
+    const values = parse(await readFile(file, "utf8"));
+    assert.equal(adminEntry(values), entry);
+    const { createGateToken, verifyGateToken } =
+      await import("../server/admin-gate.mjs");
+    const token = await createGateToken(values.JWT_SECRET, adminEntry(values));
+    assert.equal(
+      await verifyGateToken(token, values.JWT_SECRET, adminEntry(values)),
+      true,
+    );
+    assert.equal(await readFile(file, "utf8"), text);
+    const updated = {
+      ADMIN_PATH: "/another-private-panel",
+      JWT_SECRET: "n".repeat(48),
+    };
+    await writeFile(
+      file,
+      `ADMIN_PATH=${updated.ADMIN_PATH}\nJWT_SECRET=${updated.JWT_SECRET}\n`,
+    );
+    const reloaded = parse(await readFile(file, "utf8"));
+    assert.equal(adminEntry(reloaded), updated.ADMIN_PATH);
+    assert.equal(
+      await verifyGateToken(token, reloaded.JWT_SECRET, adminEntry(reloaded)),
+      false,
+    );
+  }));

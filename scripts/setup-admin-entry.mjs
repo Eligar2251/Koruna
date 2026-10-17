@@ -11,7 +11,8 @@ export function parseAdminEnv(text) {
 }
 const parse = parseAdminEnv;
 const KEYS = ["ADMIN_PATH", "JWT_SECRET"];
-const HELP = `Настройка закрытой панели (значения секретов не выводятся).
+const HELP = `Необязательная утилита: можно просто заполнить ADMIN_PATH/JWT_SECRET в .env и перезапустить сайт.
+Настройка закрытой панели (значения секретов не выводятся).
   npm run admin:setup
   npm run admin:rotate
   node scripts/setup-admin-entry.mjs --rotate-path --rotate-secret
