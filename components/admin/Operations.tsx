@@ -16,7 +16,7 @@ export function Orders({ orders, reload }: { orders: Order[]; reload: () => Prom
   const [search, setSearch] = useState('')
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
-  return <section className="panel"><div className="panel-heading"><h2>Заказы клиентов</h2><span className="badge">{orders.length}</span></div>
+  return <section className="panel"><div className="panel-heading"><h2>Заявки и заказы</h2><span className="badge">{orders.length}</span></div>
     <div className="toolbar"><input aria-label="Поиск заказов" placeholder="Имя, телефон или номер заказа" value={search} onChange={e => setSearch(e.target.value)} /><select aria-label="Фильтр статуса" value={filter} onChange={e => setFilter(e.target.value)}><option value="">Все статусы</option>{Object.entries(statuses).map(([value, title]) => <option key={value} value={value}>{title}</option>)}</select></div>
     {error && <p role="alert" className="error">{error}</p>}
     <div className="orders-list">{orders.filter(o => (!filter || o.status === filter) && `${o.customer_name} ${o.phone} ${o.id}`.toLowerCase().includes(search.toLowerCase())).map(order => <article className="order" key={order.id}>
@@ -31,7 +31,7 @@ export function Orders({ orders, reload }: { orders: Order[]; reload: () => Prom
         try {const result=await adminApi('/api/admin/orders/notify',{method:'POST',body:JSON.stringify({id:order.id})});await reload();if(result.status!=='sent')setError('Заявка сохранена. Письмо не отправлено: проверьте SMTP в настройках почты.')} catch(err){setError(err instanceof Error?err.message:'Ошибка отправки')} finally{setBusy('')}
       }}>Повторить отправку на почту</button>}</div>
       <label className="order-status">Статус<select aria-label={`Статус заказа ${order.id.slice(0, 8)}`} value={order.status} disabled={busy === order.id} onChange={async e => { const status = e.target.value; setBusy(order.id); setError(''); try { await adminApi('/api/admin/orders', { method: 'PATCH', body: JSON.stringify({ id: order.id, status }) }); await reload() } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка сохранения') } finally { setBusy('') } }}>{Object.entries(statuses).map(([value, title]) => <option key={value} value={value}>{title}</option>)}</select></label>
-    </article>)}{!orders.length && <p className="empty">Заказов пока нет. Новые заявки из корзины появятся здесь.</p>}</div>
+    </article>)}{!orders.length && <p className="empty">Заявок и заказов пока нет. Обращения с сайта и заказы из корзины появятся здесь.</p>}</div>
   </section>
 }
 

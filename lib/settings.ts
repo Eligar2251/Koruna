@@ -1,4 +1,5 @@
 import path from "node:path";
+import { mergeSiteSettings } from "../server/intake-config.mjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { defaultSettings, type SiteSettings } from "./site-config";
 import { supabaseClient, configuredSupabase } from "./auth";
@@ -23,11 +24,7 @@ export async function readSettings(
       "Настройки недоступны. Примените миграцию 20261017160000_site_operations.sql.",
     );
   const data = result.data?.config || {};
-  return {
-    ...defaultSettings,
-    ...data,
-    fields: { ...defaultSettings.fields, ...data.fields },
-  };
+  return mergeSiteSettings(data, defaultSettings);
 }
 export async function saveSettings(
   body: Record<string, unknown>,

@@ -1,8 +1,9 @@
-import { normalizePhone } from './phone.mjs'
+import { normalizePhone } from "./phone.mjs";
+import { requestIntakeEnabled } from "./intake-config.mjs";
 export function consentRecord(body, settings) {
-  if (!settings.privacyReady)
+  if (!requestIntakeEnabled(settings))
     throw new Error(
-      "Приём заявок ещё не настроен оператором. Свяжитесь по телефону.",
+      "Приём заявок временно приостановлен. Свяжитесь с нами по телефону.",
     );
   if (
     body.consent_version !==

@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { mergeSiteSettings, requestIntakeEnabled } from "./intake-config.mjs";
 import { randomUUID } from "node:crypto";
 let queue = Promise.resolve();
 export function validateSettings(body, defaults, remoteUrl = "") {
@@ -8,6 +9,7 @@ export function validateSettings(body, defaults, remoteUrl = "") {
     content: {},
     images: {},
     privacyReady: body.privacyReady === true,
+    requestsEnabled: requestIntakeEnabled(body),
     revision: randomUUID(),
   };
   if (
@@ -99,11 +101,7 @@ export function fileSettings(file, defaults) {
     async read() {
       try {
         const data = JSON.parse(await readFile(file, "utf8"));
-        return {
-          ...defaults,
-          ...data,
-          fields: { ...defaults.fields, ...data.fields },
-        };
+        return mergeSiteSettings(data, defaults);
       } catch (err) {
         if (err.code === "ENOENT") return structuredClone(defaults);
         throw err;

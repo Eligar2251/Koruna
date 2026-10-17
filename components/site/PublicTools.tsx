@@ -194,7 +194,7 @@ export function PublicTools() {
               <button
                 className="csb-primary"
                 type="submit"
-                disabled={busy || !settings.privacyReady}
+                disabled={busy || !settings.requestsEnabled}
               >
                 {busy ? "Отправляем…" : "Отправить заявку"}
               </button>

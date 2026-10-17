@@ -6,6 +6,7 @@ export function MailSettings() {
       configured: boolean;
       recipient: string;
       privacyReady: boolean;
+      requestsEnabled: boolean;
     } | null>(null),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -47,11 +48,19 @@ export function MailSettings() {
           </p>
           <p>
             Приём форм:{" "}
-            {data.privacyReady
+            {data.requestsEnabled
               ? "включён"
-              : "выключен — заполните реквизиты, политику и включите приём в настройках сайта"}
+              : "выключен — включите «Принимать заявки с сайта» в настройках сайта"}
             .
           </p>
+          {!data.privacyReady && (
+            <p className="error" role="status">
+              Юридические сведения не подтверждены. Заполните реквизиты,
+              фактическое место хранения, обработчиков и срок хранения в
+              настройках сайта. Доставка почты и включение форм не подтверждают
+              соответствие 152-ФЗ.
+            </p>
+          )}
         </>
       )}
       <p>

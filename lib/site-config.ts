@@ -32,6 +32,7 @@ export type SiteSettings = {
   content: Record<string, string>;
   images: Record<string, string>;
   privacyReady: boolean;
+  requestsEnabled: boolean;
   revision: string;
 };
 export const defaultSettings: SiteSettings = {
@@ -67,6 +68,7 @@ export const defaultSettings: SiteSettings = {
   content: {},
   images: {},
   privacyReady: false,
+  requestsEnabled: false,
   revision: "",
 };
 export const phoneHref = (phone: string) =>

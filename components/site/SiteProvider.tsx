@@ -114,9 +114,9 @@ export function ConsentCheckbox() {
         value={`${settings.fields.policyDate}:${settings.revision}`}
         readOnly
       />
-      {!settings.privacyReady && (
+      {!settings.requestsEnabled && (
         <p className="csb-form-note">
-          Приём заявок ещё не настроен оператором. Свяжитесь с нами по телефону.
+          Приём заявок временно приостановлен. Свяжитесь с нами по телефону.
         </p>
       )}
     </>

@@ -11,6 +11,10 @@ import {
   safeImage,
 } from "../server/settings.mjs";
 import { buildInquiry, consentRecord } from "../server/requests.mjs";
+import {
+  mergeSiteSettings,
+  requestIntakeEnabled,
+} from "../server/intake-config.mjs";
 
 const fields = {
   short: "ЦСБ",
@@ -82,7 +86,7 @@ test("обращения не принимаются без настройки, 
   };
   assert.equal(buildInquiry(body).items.length, 0);
   assert.equal(buildInquiry(body).request_kind, "inquiry");
-  assert.throws(() => consentRecord(body, defaults), /не настроен/);
+  assert.throws(() => consentRecord(body, defaults), /приостановлен/);
   const settings = { ...defaults, privacyReady: true, revision: "revision" };
   assert.throws(
     () => consentRecord({ ...body, consent: false }, settings),
@@ -135,7 +139,7 @@ test("массовая правка атомарна, сохраняет ост�
   }
 });
 
-test("SQL: настройки и массовая правка только администратору, заявкам нужны согласие и готовый оператор", async () => {
+test("SQL: настройки и массовая правка только администратору, заявкам нужны согласие и включённый приём", async () => {
   const db = new PGlite();
   try {
     await db.exec(
@@ -147,6 +151,8 @@ test("SQL: настройки и массовая правка только ад
       "20261017140000_orders_staff.sql",
       "20261017150000_inventory.sql",
       "20261017160000_site_operations.sql",
+      "20261017170000_staff_roles_mail.sql",
+      "20261017180000_request_intake.sql",
     ])
       await db.exec(
         await readFile(
@@ -229,6 +235,55 @@ test("SQL: настройки и массовая правка только ад
         `insert into public.orders(customer_name,phone,items,request_kind,consent) values('Иван','79991234567','[]','inquiry','{"accepted":true,"at":"2026-10-17","version":"17.10.2026","revision":"v1"}')`,
       ),
     );
+    // An explicit technical opt-in accepts inquiries even while legal details remain unconfirmed.
+    await db.exec(
+      `reset role;update public.site_settings set config=config || '{"requestsEnabled":true}'::jsonb;set role anon;`,
+    );
+    await db.exec(
+      `insert into public.orders(customer_name,phone,items,request_kind,consent) values('Проверка приёма','+70000000000','[]','inquiry','{"accepted":true,"at":"2026-10-17","version":"17.10.2026","revision":"v1"}')`,
+    );
+    await assert.rejects(() =>
+      db.exec(
+        `insert into public.orders(customer_name,phone,items,request_kind,consent) values('Без согласия','+70000000000','[]','inquiry','{"accepted":false,"at":"2026-10-17","version":"17.10.2026","revision":"v1"}')`,
+      ),
+    );
+    await assert.rejects(() =>
+      db.exec(
+        `insert into public.orders(customer_name,phone,items,request_kind,consent) values('Старая форма','+70000000000','[]','inquiry','{"accepted":true,"at":"2026-10-17","version":"17.10.2026","revision":"stale"}')`,
+      ),
+    );
+    await db.exec(
+      `reset role;set test.user_id='${id}';set role authenticated;`,
+    );
+    assert.equal(
+      (await db.query("select count(*)::int as n from public.orders")).rows[0]
+        .n,
+      2,
+    );
+    await db.exec(
+      `reset role;set test.user_id='33333333-3333-3333-3333-333333333333';set role authenticated;`,
+    );
+    assert.equal(
+      (await db.query("select count(*)::int as n from public.orders")).rows[0]
+        .n,
+      0,
+    );
+    await assert.rejects(() =>
+      db.exec(`update public.site_settings set config='{}'::jsonb`),
+    );
+    for (const flag of [false, null, "true"]) {
+      await db.exec(`reset role;`);
+      await db.query(
+        `update public.site_settings set config=config || $1::jsonb`,
+        [JSON.stringify({ requestsEnabled: flag, privacyReady: true })],
+      );
+      await db.exec(`set role anon;`);
+      await assert.rejects(() =>
+        db.exec(
+          `insert into public.orders(customer_name,phone,items,request_kind,consent) values('Выключено','+70000000000','[]','inquiry','{"accepted":true,"at":"2026-10-17","version":"17.10.2026","revision":"v1"}')`,
+        ),
+      );
+    }
     assert.equal(
       (await db.query("select count(*)::int as n from public.site_settings"))
         .rows[0].n,
@@ -237,4 +292,104 @@ test("SQL: настройки и массовая правка только ад
   } finally {
     await db.close();
   }
+});
+
+test("приём отделён от юридического подтверждения; старые настройки совместимы, явный запрет важнее", () => {
+  assert.equal(requestIntakeEnabled({}), false);
+  assert.equal(requestIntakeEnabled({ privacyReady: true }), true);
+  assert.equal(
+    requestIntakeEnabled({ privacyReady: false, requestsEnabled: true }),
+    true,
+  );
+  for (const flag of [false, null, "true", 1])
+    assert.equal(
+      requestIntakeEnabled({ privacyReady: true, requestsEnabled: flag }),
+      false,
+    );
+  const merged = mergeSiteSettings(
+    { privacyReady: true },
+    { ...defaults, requestsEnabled: false },
+  );
+  assert.equal(merged.requestsEnabled, true);
+  assert.equal(mergeSiteSettings({}, defaults).requestsEnabled, false);
+  assert.equal(merged.fields.phone1, fields.phone1);
+  const next = validateSettings(
+    {
+      ...defaults,
+      fields: { ...fields, legalAddress: "", storageLocation: "" },
+      requestsEnabled: true,
+    },
+    defaults,
+  );
+  assert.equal(next.requestsEnabled, true);
+  assert.equal(next.privacyReady, false);
+  assert.equal(next.fields.storageLocation, "");
+  const body = {
+    consent: true,
+    consent_version: `${fields.policyDate}:${next.revision}`,
+  };
+  assert.equal(consentRecord(body, next).accepted, true);
+  assert.throws(
+    () => consentRecord({ ...body, consent: false }, next),
+    /согласие/,
+  );
+  assert.throws(
+    () => consentRecord({ ...body, consent_version: "old" }, next),
+    /обновлена/,
+  );
+  assert.throws(
+    () =>
+      consentRecord(body, {
+        ...next,
+        privacyReady: true,
+        requestsEnabled: false,
+      }),
+    /приостановлен/,
+  );
+});
+
+test("локальные настройки сохраняют включённые формы без подмены юридических сведений", async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), "csb-intake-"));
+  try {
+    const store = fileSettings(path.join(dir, "settings.json"), {
+      ...defaults,
+      requestsEnabled: false,
+    });
+    assert.equal((await store.read()).requestsEnabled, false);
+    const next = validateSettings(
+      { ...defaults, requestsEnabled: true },
+      defaults,
+    );
+    await store.save(next, "");
+    const read = await store.read();
+    assert.equal(read.requestsEnabled, true);
+    assert.equal(read.privacyReady, false);
+    const legacy = { ...defaults, privacyReady: true };
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(path.join(dir, "settings.json"), JSON.stringify(legacy));
+    assert.equal((await store.read()).requestsEnabled, true);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("формы и почтовая диагностика используют приём, а не флаг юридической готовности", async () => {
+  for (const file of [
+    "components/site/SiteProvider.tsx",
+    "components/site/PublicTools.tsx",
+    "components/pages/korzina/CartView.tsx",
+  ]) {
+    const source = await readFile(
+      new URL("../" + file, import.meta.url),
+      "utf8",
+    );
+    assert.ok(source.includes("settings.requestsEnabled"));
+    assert.ok(!source.includes("settings.privacyReady"));
+  }
+  const editor = await readFile(
+    new URL("../components/admin/SiteSettingsEditor.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.ok(editor.includes("value.requestsEnabled"));
+  assert.ok(editor.includes("value.privacyReady"));
 });

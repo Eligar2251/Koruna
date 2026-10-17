@@ -10,7 +10,6 @@ export async function LegalPage({
     f = settings.fields;
   return (
     <div id="allrecords" className="t-records">
-
       <main className="csb-policy">
         <a href="/">← На главную</a>
         <h1>
@@ -23,9 +22,11 @@ export async function LegalPage({
         <p>Редакция: {f.policyDate}</p>
         {!settings.privacyReady && (
           <p className="draft">
-            Документ подготавливается оператором. До заполнения и подтверждения
-            сведений приём персональных данных через формы отключён. Для связи
-            используйте телефон.
+            Сведения в документе уточняются оператором. Юридическая готовность и
+            выполнение требований к локализации данных не подтверждены.
+            {settings.requestsEnabled
+              ? " Приём заявок включён; при отправке требуется отдельное согласие."
+              : " Приём заявок временно приостановлен; для связи используйте телефон."}
           </p>
         )}
         {kind === "cookies" ? (

@@ -89,7 +89,7 @@ export function CartView() {
           <label>Комментарий<textarea name="comment" rows={3} maxLength={1000} placeholder="Пожелания к заказу" /></label>
           <ConsentCheckbox />
           {(error || loadError) && <p className="csb-cart__error" role="alert">{error || loadError}</p>}{blocked && <p className="csb-cart__error">Проверьте доступность товаров и количество.</p>}
-          <button className="csb-cart__submit" type="submit" disabled={pending || blocked || !catalog || !settings.privacyReady}>{pending ? 'Отправляем заказ…' : 'Отправить заказ'}</button>
+          <button className="csb-cart__submit" type="submit" disabled={pending || blocked || !catalog || !settings.requestsEnabled}>{pending ? 'Отправляем заказ…' : 'Отправить заказ'}</button>
         </form></aside></div>}
   </main>
 }
