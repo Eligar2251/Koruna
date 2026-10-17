@@ -1,3 +1,4 @@
+import { buildBulkRows } from './bulk.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -151,6 +152,13 @@ export function createFileStore(file) {
 
   return {
     mode: 'file',
+    bulkProducts(updates) {
+      return update(data => {
+        const rows = buildBulkRows(updates, data.products, data.categories)
+        for (const row of rows) Object.assign(data.products.find(p => p.id === row.id), row, { updated_at: new Date().toISOString() })
+        return { updated: rows.length }
+      })
+    },
     async stockMovements() {
       const data = await read()
       return (data.stock_movements || []).slice().reverse().slice(0, 200)
@@ -262,6 +270,13 @@ export function createSupabaseStore(client) {
 
   return {
     mode: 'supabase',
+    async bulkProducts(updates) {
+      const all = await this.adminList()
+      const rows = buildBulkRows(updates, all.products, all.categories)
+      const result = await client.rpc('bulk_update_products', { p_rows: rows })
+      raise(result.error)
+      return { updated: rows.length }
+    },
     async stockMovements() {
       const result = await client.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(200)
       raise(result.error)

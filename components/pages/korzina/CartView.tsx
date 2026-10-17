@@ -1,4 +1,6 @@
 'use client'
+import { ConsentCheckbox, useSite } from '../../site/SiteProvider'
+import { SiteImage } from '../../site/SiteImage'
 
 import { FormEvent, useEffect, useState } from 'react'
 import { formatPrice } from '../../../lib/format'
@@ -7,6 +9,7 @@ import { readCart, writeCart, type CartItem } from '../../cart/cart'
 import './design/korzina.css'
 
 export function CartView() {
+  const { settings } = useSite()
   const [items, setItems] = useState<CartItem[]>([])
   const [catalog, setCatalog] = useState<CatalogProduct[] | null>(null)
   const [ready, setReady] = useState(false)
@@ -55,7 +58,7 @@ export function CartView() {
     const form = new FormData(event.currentTarget)
     try {
       const response = await fetch('/api/orders', { method: 'POST', headers: { 'content-type': 'application/json', 'x-csb-request': '1' },
-        body: JSON.stringify({ name: form.get('name'), phone: form.get('phone'), email: form.get('email'), address: form.get('address'), comment: form.get('comment'), items: rows.map(row => ({ product_id: row.id, qty: row.qty })) }) })
+        body: JSON.stringify({ consent: form.get('consent') === 'on', consent_version: form.get('consent_version'), name: form.get('name'), phone: form.get('phone'), email: form.get('email'), address: form.get('address'), comment: form.get('comment'), items: rows.map(row => ({ product_id: row.id, qty: row.qty })) }) })
       const data = await response.json()
       if (!response.ok || !data.id) throw new Error(data.error || 'Не удалось оформить заказ')
       setOrderId(String(data.id)); setItems([])
@@ -72,7 +75,7 @@ export function CartView() {
       : !rows.length ? <section className="csb-cart__empty"><h2>Здесь пока пусто</h2><p>Добавьте строительные материалы из каталога — они появятся здесь.</p><a className="csb-cart__submit" href="/katalog">Перейти в каталог</a></section>
       : <div className="csb-cart__layout"><section className="csb-cart__list" aria-label="Товары в корзине">
         {rows.map(row => <article className="csb-cart__row" key={row.id}>
-          <div className="csb-cart__image">{row.image && <img src={row.image} alt="" />}</div>
+          <div className="csb-cart__image">{row.image && <SiteImage src={row.image} alt="" />}</div>
           <div className="csb-cart__info"><h2 title={row.name}>{row.name}</h2><p>{formatPrice(row.price)} / {row.unit || 'шт'}</p>{!row.available ? <small className="csb-cart__error">Товар больше недоступен — удалите его</small> : row.stock != null && row.qty > row.stock ? <small className="csb-cart__error">Доступно: {row.stock} {row.unit || 'шт'}</small> : <small>Цена и наличие проверяются при оформлении</small>}</div>
           <div className="csb-cart__controls"><div className="csb-cart__qty"><button type="button" aria-label={`Уменьшить: ${row.name}`} disabled={row.qty <= 1 || pending} onClick={() => quantity(row.id, row.qty - 1)}>−</button><input type="number" aria-label={`Количество: ${row.name}`} min={1} max={999} value={row.qty} disabled={pending} onChange={e => quantity(row.id, Number(e.target.value))} /><button type="button" aria-label={`Увеличить: ${row.name}`} disabled={row.qty >= 999 || pending} onClick={() => quantity(row.id, row.qty + 1)}>+</button></div><strong>{row.price == null ? 'По запросу' : formatPrice(row.price * row.qty)}</strong><button type="button" className="csb-cart__remove" disabled={pending} onClick={() => update(items.filter(item => item.id !== row.id))}>Удалить</button></div>
         </article>)}
@@ -83,8 +86,9 @@ export function CartView() {
           <label>Электронная почта<input name="email" type="email" maxLength={200} autoComplete="email" placeholder="Необязательно" /></label>
           <label>Адрес доставки<input name="address" maxLength={300} autoComplete="street-address" placeholder="Или укажите самовывоз" /></label>
           <label>Комментарий<textarea name="comment" rows={3} maxLength={1000} placeholder="Пожелания к заказу" /></label>
+          <ConsentCheckbox />
           {(error || loadError) && <p className="csb-cart__error" role="alert">{error || loadError}</p>}{blocked && <p className="csb-cart__error">Проверьте доступность товаров и количество.</p>}
-          <button className="csb-cart__submit" type="submit" disabled={pending || blocked || !catalog}>{pending ? 'Отправляем заказ…' : 'Отправить заказ'}</button>
+          <button className="csb-cart__submit" type="submit" disabled={pending || blocked || !catalog || !settings.privacyReady}>{pending ? 'Отправляем заказ…' : 'Отправить заказ'}</button>
         </form></aside></div>}
   </main>
 }

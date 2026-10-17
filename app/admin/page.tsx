@@ -4,6 +4,9 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Brand } from '../../components/brand/Brand'
 import { adminApi as api } from '../../components/admin/api'
 import { Orders, Warehouse, type Order, type Movement } from '../../components/admin/Operations'
+import { BulkProducts } from '../../components/admin/BulkProducts'
+import { SiteSettingsEditor } from '../../components/admin/SiteSettingsEditor'
+import { LiveOrders } from '../../components/admin/LiveOrders'
 import { formatPrice } from '../../lib/format'
 
 const PAGES: Array<[string, string]> = [
@@ -34,6 +37,7 @@ type Category = {
 }
 
 type Product = {
+  slug: string
   id: string
   name: string
   category_id: string | null
@@ -129,7 +133,7 @@ export default function AdminPage() {
   const [globalError, setGlobalError] = useState('')
   const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
-  const tabs: Record<string, string> = { products: 'Товары', categories: 'Категории', orders: 'Заказы', stock: 'Складской учёт', staff: 'Администраторы' }
+  const tabs: Record<string, string> = { products: 'Товары', categories: 'Категории', orders: 'Заказы', stock: 'Складской учёт', staff: 'Администраторы', bulk: 'Массовый редактор', settings: 'Настройки сайта' }
   const [staffError, setStaffError] = useState('')
 
   function showApp(session: { mode?: string }) {
@@ -322,6 +326,7 @@ export default function AdminPage() {
           </div>
         </header>
 
+        {authed && <LiveOrders onOrders={setOrders} />}
         <div className="stats"><div><span>Товары</span><strong>{products.length}</strong><small>В каталоге базы</small></div><div><span>Категории</span><strong>{categories.length}</strong><small>Направления поставок</small></div><div><span>Новые заказы</span><strong>{orders.filter(o => o.status === 'new').length}</strong><small>Ожидают обработки</small></div><div><span>Нет на складе</span><strong>{products.filter(p => p.stock_quantity === 0).length}</strong><small>Требуется пополнение</small></div></div>
         {notice && <p className="success" role="status">{notice}</p>}
         {globalError && <p className="error" role="alert">{globalError}</p>}
@@ -577,6 +582,8 @@ export default function AdminPage() {
             </ul></div>
           </section>
         </div>
+        {tab === 'bulk' && <BulkProducts products={products} categories={categories} reload={load} />}
+        {tab === 'settings' && <SiteSettingsEditor categories={categories} />}
         {tab === 'orders' && <Orders orders={orders} reload={load} />}
         {tab === 'stock' && <Warehouse products={products} movements={movements} reload={load} />}
         <div className="layout stack" hidden={tab !== 'staff'}>

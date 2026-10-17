@@ -78,7 +78,8 @@ async function sendFile(file: string) {
     status: 200,
     headers: {
       'content-type': MIME[ext] || 'application/octet-stream',
-      'cache-control': 'no-store',
+      'cache-control': 'public, max-age=3600',
+      'x-content-type-options': 'nosniff',
     },
   })
 }

@@ -7,6 +7,7 @@ export type CatalogCategory = {
 }
 
 export type CatalogProduct = {
+  sku?: string | null
   id: string
   slug: string
   name: string

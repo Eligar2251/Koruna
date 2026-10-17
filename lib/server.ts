@@ -62,6 +62,10 @@ export async function saveImage(body: Record<string, unknown>, client?: Supabase
   if (!ext) throw new Error('Фото: только JPG, PNG или WebP')
   const buffer = Buffer.from(String(body.image_base64 || ''), 'base64')
   if (!buffer.length || buffer.length > MAX_IMAGE) throw new Error('Фото не больше 5 МБ')
+  const valid = type === 'image/jpeg' ? buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
+    : type === 'image/png' ? buffer.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+    : buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP'
+  if (!valid) throw new Error('Некорректный файл изображения')
   const name = `${randomBytes(16).toString('hex')}.${ext}`
   if (client) {
     const uploaded = await client.storage.from('product-images').upload(name, buffer, {

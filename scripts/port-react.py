@@ -646,7 +646,8 @@ def write_routes(pages: list[dict]) -> None:
     catalog_route = ROOT / 'app' / 'katalog' / '[[...slug]]'
     catalog_route.mkdir(parents=True, exist_ok=True)
     (catalog_route / 'page.tsx').write_text(
-        """import type { Metadata } from 'next'
+        """import type { ReactElement } from 'react'
+import type { Metadata } from 'next'
 import { CatalogOnly } from '../../../components/catalog/CatalogOnly'
 import { catalogPages, catalogTitles } from '../../../components/pages/registry'
 
@@ -657,13 +658,15 @@ type Props = { params: Promise<{ slug?: string[] }> }
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug = [] } = await params
   const key = slug.join('/')
-  return { title: catalogTitles[key] || 'Каталог — ЦСБ' }
+  const titles = catalogTitles as Record<string, string>
+  return { title: titles[key] || 'Каталог — ЦСБ' }
 }
 
 export default async function Page({ params }: Props) {
   const { slug = [] } = await params
   const key = slug.join('/')
-  const Found = catalogPages[key]
+  const pages = catalogPages as Record<string, () => ReactElement>
+  const Found = pages[key]
   if (Found) return <Found />
   return <CatalogOnly slug={slug.at(-1) || ''} />
 }
@@ -707,6 +710,8 @@ def main() -> None:
         print(rel, pages[-1]['name'])
     write_chrome(home_html)
     write_routes(pages)
+    import runpy
+    runpy.run_path(str(ROOT / 'scripts' / 'enhance-react.py'), run_name='__main__')
     print(f'pages {len(pages)}')
 
 

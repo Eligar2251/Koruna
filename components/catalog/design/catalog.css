@@ -172,3 +172,8 @@
 .koruna-description h2 { margin: 0 0 18px; font-size: 22px; }
 .koruna-description p { white-space: pre-wrap; line-height: 1.6; }
 .koruna-description button { background: #1c6b5a; color: white; border: 0; padding: 12px 24px; border-radius: 5px; cursor: pointer; }
+.koruna-filters { display: flex; align-items: flex-end; gap: 16px; margin: 20px 0 12px; padding: 18px; border: 1px solid #dce5dc; border-radius: 6px; background: #f7faf7; }
+.koruna-filters label { display: grid; gap: 6px; font-size: 12px; flex: 1; }
+.koruna-filters input[type=search], .koruna-filters select { min-width: 0; width: 100%; padding: 10px; border: 1px solid #d5e1d6; border-radius: 4px; background: white; color: #304f3b; font: inherit; }
+.koruna-filters .koruna-filters__check { display: flex; flex: 0 0 auto; align-items: center; padding: 10px 0; gap: 8px; }
+@media(max-width:640px) { .koruna-filters { flex-direction: column; align-items: stretch; } }
