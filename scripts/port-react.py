@@ -76,7 +76,7 @@ EXTRA_CSS = """
 }
 @media screen and (min-width: 1200px) {
   .t396__artboard[data-artboard-upscale="window"] {
-    height: calc(var(--csb-h) * 100vw / 1200) !important;
+    height: calc(var(--csb-h) * var(--csb-scale, 1)) !important;
   }
   .t396__artboard[data-artboard-upscale="window"] > .csb-scale {
     width: 1200px;
@@ -85,7 +85,7 @@ EXTRA_CSS = """
     top: 0;
     right: auto;
     bottom: auto;
-    transform: translateX(-50%) scale(calc(100vw / 1200));
+    transform: translateX(-50%) scale(var(--csb-scale, 1));
     transform-origin: top center;
   }
 }
