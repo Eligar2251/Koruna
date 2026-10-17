@@ -1,0 +1,125 @@
+/* A quieter company page: comfortable text and caption-free video previews. */
+#rec2051323541 {
+  padding-top: 40px !important;
+  padding-bottom: 56px !important;
+}
+#rec2051323541 .t480__descr {
+  font-size: 16px;
+  line-height: 1.65;
+}
+#rec2051323541 .t480__textwrapper {
+  height: auto !important;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+}
+#rec2051323541 .t480__blockimg {
+  min-height: 500px;
+  height: 100% !important;
+  border-radius: 6px;
+}
+#rec2051323541 .t-container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+#rec2051323541 .t480__col {
+  width: auto !important;
+  min-width: 0;
+  margin: 0 !important;
+  float: none;
+}
+.csb-company-videos {
+  max-width: 1200px;
+  margin: 25px auto 70px;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+.csb-company-videos__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.csb-company-video {
+  position: relative;
+  aspect-ratio: 16/10;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eaf0eb;
+}
+.csb-company-video img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.csb-company-video iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.csb-company-video button {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: #fff;
+  background: #0c352958;
+  cursor: pointer;
+  font:
+    13px Arial,
+    sans-serif;
+}
+.csb-company-video button span:first-child {
+  display: grid;
+  place-items: center;
+  padding-left: 3px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #1c6b5a;
+  font-size: 20px;
+}
+.csb-company-video button:hover {
+  background: #0c352930;
+}
+.csb-company-videos__note {
+  max-width: 800px;
+  margin: 18px 0 0;
+  color: #65776b;
+  font:
+    12px/1.6 Arial,
+    sans-serif;
+}
+@media (max-width: 960px) {
+  #rec2051323541 .t-container {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  #rec2051323541 .t480__blockimg {
+    min-height: 300px;
+  }
+  #rec2051323541 .t480__textwrapper {
+    min-height: 0;
+  }
+  .csb-company-videos__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (max-width: 560px) {
+  .csb-company-videos__grid {
+    grid-template-columns: 1fr;
+  }
+  .csb-company-videos {
+    margin-bottom: 40px;
+  }
+}
+#rec2051323541 .t-container::before, #rec2051323541 .t-container::after { display: none; }

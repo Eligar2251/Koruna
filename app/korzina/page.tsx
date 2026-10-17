@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Footer } from '../../components/chrome/Footer'
-import { Header } from '../../components/chrome/Header'
 import { CartView } from '../../components/pages/korzina/CartView'
 
 export const metadata: Metadata = {
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <div id="allrecords" className="t-records">
-      <Header />
+
       <CartView />
       <Footer />
     </div>

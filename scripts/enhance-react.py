@@ -127,7 +127,7 @@ for p in list((ROOT/'components/pages').rglob('*.jsx'))+list((ROOT/'components/c
  s=s.replace('aria-label={"Search"}', 'aria-label={"Поиск по каталогу"}').replace('aria-label={"Cart"}', 'aria-label={"Корзина"}')
  p.write_text('\n'.join(line.rstrip() for line in s.splitlines())+'\n')
 used=set()
-for p in list((ROOT/'components/pages').rglob('*.jsx'))+list((ROOT/'components/chrome').glob('*.jsx')):
+for p in list((ROOT/'components').rglob('*.jsx'))+list((ROOT/'components').rglob('*.tsx')):
  used.update(re.findall(r'<SiteText id="([^"]+)"',p.read_text()))
 content={key:value for key,value in content.items() if key in used}
 manifest['/assets/logo-mark.png']={'src':'/assets/logo-mark.png','label':'Логотип сайта'}
@@ -136,3 +136,6 @@ for p in (ROOT/'public/assets/catalog').glob('*.jpg'):
 (ROOT/'components/site/media.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
 (ROOT/'components/site/content.json').write_text(json.dumps(content,ensure_ascii=False,indent=2)+'\n')
 print('content',len(content),'media',len(manifest))
+
+import runpy
+runpy.run_path(str(ROOT / "scripts" / "refine-site.py"), run_name="__main__")

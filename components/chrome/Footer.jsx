@@ -1,3 +1,4 @@
+import { NavLink } from './NavLink'
 import { SiteText, SiteLink, InquiryButton } from '../site/SiteProvider'
 import '../pages/home/design/page.css'
 import { CartCount } from '../cart/CartCount'
@@ -18,58 +19,58 @@ export function Footer() {
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113001733"} data-elem-id={"1773113001733"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/listovye-materialy"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/listovye-materialy"} style={{color: "inherit"}}>
                     <SiteText id="c6ebe619b086" fallback={"\u041b\u0438\u0441\u0442\u043e\u0432\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113054409000001"} data-elem-id={"1773113054409000001"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/uteplitel"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/uteplitel"} style={{color: "inherit"}}>
                     <SiteText id="b870b1bd42ad" fallback={"\u0423\u0442\u0435\u043f\u043b\u0438\u0442\u0435\u043b\u044c"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113074379000002"} data-elem-id={"1773113074379000002"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/polikarbonat"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/polikarbonat"} style={{color: "inherit"}}>
                     <SiteText id="21134f5447bc" fallback={"\u041f\u043e\u043b\u0438\u043a\u0430\u0440\u0431\u043e\u043d\u0430\u0442"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113100596000003"} data-elem-id={"1773113100596000003"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/gidro-paroizolyaziya"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/gidro-paroizolyaziya"} style={{color: "inherit"}}>
                     <SiteText id="fc2d94e3bc01" fallback={"\u0412\u0435\u0442\u0440\u043e- \u043f\u0430\u0440\u043e\u0438\u0437\u043e\u043b\u044f\u0446\u0438\u044f"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113124550000004"} data-elem-id={"1773113124550000004"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/profil-karkas"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/profil-karkas"} style={{color: "inherit"}}>
                     <SiteText id="c28369e80e10" fallback={"\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0438 \u043a\u0430\u0440\u043a\u0430\u0441"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113140479000005"} data-elem-id={"1773113140479000005"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/montajnaya-himiya"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/montajnaya-himiya"} style={{color: "inherit"}}>
                     <SiteText id="bc52459052f3" fallback={"\u041c\u043e\u043d\u0442\u0430\u0436\u043d\u0430\u044f \u0445\u0438\u043c\u0438\u044f"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113160044000006"} data-elem-id={"1773113160044000006"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/krepej-i-metizy"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/krepej-i-metizy"} style={{color: "inherit"}}>
                     <SiteText id="4bccd875cfca" fallback={"\u041a\u0440\u0435\u043f\u0435\u0436 \u0438 \u043c\u0435\u0442\u0438\u0437\u044b"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113184148000007"} data-elem-id={"1773113184148000007"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/katalog/krovelnye-materialy"} style={{color: "inherit"}}>
+                  <NavLink href={"/katalog/krovelnye-materialy"} style={{color: "inherit"}}>
                     <SiteText id="108a182dcc69" fallback={"\u041a\u0440\u043e\u0432\u0435\u043b\u044c\u043d\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652728000002"} data-elem-id={"1773113652728000002"} data-elem-type={"text"}>
@@ -79,44 +80,44 @@ export function Footer() {
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000003"} data-elem-id={"1773113652729000003"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/o-kompanii"} style={{color: "inherit"}}>
+                  <NavLink href={"/o-kompanii"} style={{color: "inherit"}}>
                     <SiteText id="febca7165473" fallback={"\u041e \u041a\u043e\u043c\u043f\u0430\u043d\u0438\u0438"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000004"} data-elem-id={"1773113652729000004"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/oplata-i-dostavka"} style={{color: "inherit"}}>
+                  <NavLink href={"/oplata-i-dostavka"} style={{color: "inherit"}}>
                     <SiteText id="4156d0817d0f" fallback={"\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430 \u0438 \u043e\u043f\u043b\u0430\u0442\u0430"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000005"} data-elem-id={"1773113652729000005"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/sotrudnichestvo"} style={{color: "inherit"}}>
+                  <NavLink href={"/sotrudnichestvo"} style={{color: "inherit"}}>
                     <SiteText id="5a6da5b51fcb" fallback={"\u0421\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u0447\u0435\u0441\u0442\u0432\u043e"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000006"} data-elem-id={"1773113652729000006"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/contact"} style={{color: "inherit"}}>
+                  <NavLink href={"/contact"} style={{color: "inherit"}}>
                     <SiteText id="fca8d5aa3c1a" fallback={"\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000007"} data-elem-id={"1773113652729000007"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/privacy"} style={{color: "inherit"}}>
+                  <NavLink href={"/privacy"} style={{color: "inherit"}}>
                     <SiteText id="3ba8eaa5d624" fallback={"\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113652729000008"} data-elem-id={"1773113652729000008"} data-elem-type={"text"}>
                 <div className={"tn-atom"}>
-                  <a href={"/soglasie"} style={{color: "inherit"}}>
+                  <NavLink href={"/soglasie"} style={{color: "inherit"}}>
                     <SiteText id="205f97be66e6" fallback={"\u0421\u043e\u0433\u043b\u0430\u0441\u0438\u0435"} />
-                  </a>
+                  </NavLink>
                 </div>
               </div>
               <div className={"t396__elem tn-elem tn-elem__20505292211773113838297000001"} data-elem-id={"1773113838297000001"} data-elem-type={"text"}>

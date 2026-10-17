@@ -1,5 +1,6 @@
 "use client";
 import { useState, type ImgHTMLAttributes, type HTMLAttributes } from "react";
+import { NavLink } from "../chrome/NavLink";
 import { useSite } from "./SiteProvider";
 import manifest from "./media.json";
 const FALLBACK = "/assets/image-unavailable.svg";
@@ -23,6 +24,8 @@ export function SiteImage({
   const [failed, setFailed] = useState("");
   return (
     <img
+      loading="lazy"
+      decoding="async"
       {...props}
       alt={alt}
       src={failed === source ? FALLBACK : source}
@@ -51,7 +54,7 @@ export function SiteBackgroundLink({
 }) {
   const source = useSource(original, `category:${href.split("/").at(-1)}`);
   return (
-    <a
+    <NavLink
       {...props}
       href={href}
       role={undefined}

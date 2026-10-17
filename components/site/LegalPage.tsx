@@ -1,4 +1,3 @@
-import { Header } from "../chrome/Header";
 import { Footer } from "../chrome/Footer";
 import { readSettings } from "../../lib/settings";
 import { defaultSettings } from "../../lib/site-config";
@@ -11,7 +10,7 @@ export async function LegalPage({
     f = settings.fields;
   return (
     <div id="allrecords" className="t-records">
-      <Header />
+
       <main className="csb-policy">
         <a href="/">← На главную</a>
         <h1>

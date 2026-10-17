@@ -16,6 +16,7 @@ export async function readSettings(
     .from("site_settings")
     .select("config")
     .eq("id", "main")
+    .abortSignal(AbortSignal.timeout(4000))
     .maybeSingle();
   if (result.error)
     throw new Error(

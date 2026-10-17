@@ -1,14 +1,13 @@
 import { ProductGrid } from './ProductGrid'
 import { SiteImage } from '../site/SiteImage'
 import { categoryHref, categoryImage, productsIn, type CatalogCategory, type CatalogProduct } from '../../lib/catalog'
-import { getStore } from '../../lib/server'
+import { publicCatalog } from '../../lib/public-data'
 import './design/catalog.css'
 
 export async function CatalogFill({ mode, slug }: { mode: string; slug: string }) {
   if (mode === 'home') return null
   try {
-    const store = await getStore()
-    const data = await store.catalog()
+    const data = await publicCatalog()
     const categories = (data.categories || []) as CatalogCategory[]
     const products = (data.products || []) as CatalogProduct[]
     const current = categories.find((item) => item.slug === slug)
@@ -37,7 +36,7 @@ export async function CatalogFill({ mode, slug }: { mode: string; slug: string }
             })}
           </div>
         ) : null}
-        <ProductGrid products={visible} />
+        <ProductGrid products={visible} categories={categories} />
       </div>
     )
   } catch {

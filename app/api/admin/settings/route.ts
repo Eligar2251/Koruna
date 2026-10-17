@@ -1,3 +1,8 @@
+import { invalidateSettings } from "../../../../lib/public-data";
+function changed<T>(response: T): T {
+  invalidateSettings();
+  return response;
+}
 import { attachSession, hasSiteHeader, openAdmin } from "../../../../lib/auth";
 import { fail, json, readJson } from "../../../../lib/http";
 import { readSettings, saveSettings } from "../../../../lib/settings";
@@ -21,7 +26,9 @@ export async function PUT(req: Request) {
   if ("response" in opened) return opened.response;
   try {
     return attachSession(
-      json(await saveSettings(await readJson(req), opened.session.client)),
+      changed(
+        json(await saveSettings(await readJson(req), opened.session.client)),
+      ),
       opened.session,
       req,
     );

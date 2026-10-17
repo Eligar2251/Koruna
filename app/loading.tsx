@@ -1,0 +1,1 @@
+export default function Loading(){return <main role="status" style={{minHeight:'50vh',display:'grid',placeItems:'center',color:'#1c6b5a',font:'15px Arial,sans-serif'}}><p>Загружаем страницу…</p></main>}

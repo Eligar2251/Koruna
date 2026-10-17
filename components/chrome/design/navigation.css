@@ -1,0 +1,252 @@
+/* The same navigation is shared by all public routes; no Tilda JS is needed. */
+#t-header {
+  position: relative;
+  z-index: 1000;
+}
+#t-header .t-menu-base__list-item {
+  position: relative;
+}
+#t-header .csb-catalog-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#t-header .csb-catalog-menu__trigger button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1c6b5a;
+  cursor: pointer;
+  font-size: 19px;
+}
+#t-header .csb-catalog-menu__trigger button[aria-expanded="true"] {
+  transform: rotate(180deg);
+}
+#t-header .csb-catalog-dropdown[hidden] {
+  display: none;
+}
+#t-header .csb-catalog-dropdown {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 1100;
+  min-width: 290px;
+  max-height: min(680px, 75vh);
+  overflow-y: auto;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1px solid #dde8e0;
+  border-radius: 6px;
+  box-shadow: 0 12px 28px #173c2520;
+  text-align: left;
+}
+#t-header .csb-catalog-dropdown ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+#t-header .csb-catalog-dropdown > ul > li {
+  padding: 4px 0;
+}
+#t-header .csb-catalog-dropdown ul ul {
+  padding-left: 14px;
+  border-left: 1px solid #dce6de;
+}
+#t-header .csb-catalog-dropdown a {
+  display: block;
+  color: #304f3b !important;
+  font:
+    13px/1.4 Arial,
+    sans-serif;
+  padding: 7px 4px;
+  white-space: normal;
+}
+#t-header .csb-catalog-dropdown a:hover {
+  background: #eff5ef;
+  color: #1c6b5a !important;
+}
+#t-header .csb-catalog-dropdown__all {
+  font-weight: bold;
+  border-bottom: 1px solid #e2eae4;
+  margin-bottom: 7px;
+}
+#t-header button:focus-visible,
+#t-header a:focus-visible {
+  outline: 2px solid #c47a3a;
+  outline-offset: 3px;
+}
+#t-header .t-sociallinks__wrapper {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#t-header .t-sociallinks__item {
+  display: flex !important;
+  align-items: center;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto;
+}
+#t-header .t-sociallinks__item button,
+#t-header .t-sociallinks__item a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (min-width: 961px) {
+  #t-header .t-menu-base__maincontainer {
+    display: flex !important;
+    align-items: center;
+    gap: clamp(14px, 1.6vw, 28px);
+    padding: 10px 24px !important;
+    box-sizing: border-box;
+    min-height: 76px;
+  }
+  #t-header .t-menu-base__logowrapper {
+    flex: 0 0 auto;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #t-header .t-menu-base__leftwrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0 !important;
+  }
+  #t-header .t-menu-base__rightwrapper {
+    flex: 0 0 auto;
+    padding: 0 !important;
+  }
+  #t-header .t-menu-base__list {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 20px;
+    row-gap: 4px;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #t-header .t-menu-base__list > .t-menu-base__list-item {
+    padding: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+  #t-header .t-menu__link-item {
+    display: inline-flex;
+    padding: 8px 0;
+    line-height: 1.4;
+  }
+  #t-header .t-menu-base__additionalwrapper {
+    display: flex !important;
+    align-items: center;
+    gap: 18px;
+  }
+  #t-header .t-menu-base__right_descr,
+  #t-header .t-menu-base__right_social_links,
+  #t-header .t-menu-base__right_buttons {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #t-header .t-menuwidgeticons__wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 !important;
+  }
+  #t-header .t-menuwidgeticons__icon {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+@media (min-width: 961px) and (max-width: 1250px) {
+  #t-header .t-menu-base__maincontainer {
+    gap: 14px;
+    padding: 8px 16px !important;
+  }
+  #t-header .csb-brand__full {
+    font-size: 10px;
+  }
+  #t-header .t-menu-base__list {
+    column-gap: 14px;
+  }
+  #t-header .t-menu__link-item {
+    font-size: 12px !important;
+  }
+  #t-header .t-menu-base__additionalwrapper {
+    gap: 12px;
+  }
+  #t-header .t-menu-base__right_descr {
+    font-size: 11px;
+  }
+  #t-header .t-menu-base__right_buttons {
+    display: none;
+  }
+}
+@media (max-width: 960px) {
+  #t-header .csb-catalog-dropdown {
+    position: static;
+    max-height: 50vh;
+    margin: 4px 0 12px;
+    min-width: 0;
+    box-shadow: none;
+  }
+  #t-header .csb-catalog-menu__trigger {
+    justify-content: center;
+  }
+  #t-header .csb-nav-open {
+    max-height: calc(100dvh - 60px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+@media (min-width: 961px) {
+  #t-header .t-menu-base__maincontainer {
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+  }
+  #t-header .t-menu-base__leftwrapper,
+  #t-header .t-menu-base__rightwrapper {
+    width: auto !important;
+  }
+  #t-header .t-menu-base__right_descr {
+    white-space: nowrap;
+  }
+}
+@media (min-width: 961px) and (max-width: 1400px) {
+  #t-header .csb-brand__full {
+    font-size: 10px;
+  }
+  #t-header .t-menu-base__list {
+    column-gap: 14px;
+  }
+  #t-header .t-menu__link-item {
+    font-size: 12px !important;
+  }
+  #t-header .t-menu-base__right_buttons {
+    display: none;
+  }
+}
+@media(min-width:961px) {
+ #t-header .csb-brand__full { font-size: 11px; }
+ #t-header .t-menu-base__list { flex-wrap: nowrap; column-gap: 16px; }
+ #t-header .t-menu__link-item { font-size: 12px !important; }
+}
+@media(min-width:961px) and (max-width:1400px) {
+ #t-header .t-menu-base__buttons { display: none !important; }
+ #t-header .csb-brand__full { font-size: 10px; }
+}
+@media(min-width:961px) and (max-width:1100px) {
+ #t-header .t-menu-base__right_descr { display: none; }
+}
+@media(min-width:1600px) {
+ #t-header .csb-brand__full { font-size: 13px; }
+ #t-header .t-menu__link-item { font-size: 14px !important; }
+ #t-header .t-menu-base__list { column-gap: 24px; }
+}

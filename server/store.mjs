@@ -289,9 +289,11 @@ export function createSupabaseStore(client) {
       return result.data
     },
     async catalog() {
-      const categories = await client.from('categories').select('*').eq('is_active', true).order('sort_order')
+      const [categories, products] = await Promise.all([
+        client.from('categories').select('*').eq('is_active', true).order('sort_order').abortSignal(AbortSignal.timeout(5000)),
+        client.from('products').select('*').eq('is_active', true).order('sort_order').abortSignal(AbortSignal.timeout(5000)),
+      ])
       raise(categories.error)
-      const products = await client.from('products').select('*').eq('is_active', true).order('sort_order')
       raise(products.error)
       return publicCatalog(categories.data || [], products.data || [])
     },

@@ -1,6 +1,8 @@
 import { SiteProvider } from '../components/site/SiteProvider'
 import { PublicTools } from '../components/site/PublicTools'
-import { readSettings } from '../lib/settings'
+import { publicSettings, publicCatalog } from '../lib/public-data'
+import { Header } from '../components/chrome/Header'
+import { PublicHeader } from '../components/chrome/PublicHeader'
 import { defaultSettings } from '../lib/site-config'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
@@ -19,12 +21,13 @@ export const viewport: Viewport = {
 export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const settings = await readSettings().catch(() => defaultSettings)
+  const [settings, catalog] = await Promise.all([publicSettings().catch(() => defaultSettings), publicCatalog().catch(() => ({ categories: [], products: [] }))])
   return (
     <html lang="ru">
       <body className="t-body" style={{ margin: 0 }}>
         <ViewportScale />
         <SiteProvider settings={settings}>
+          <PublicHeader><Header categories={catalog.categories} /></PublicHeader>
           {children}
           <PublicTools />
         </SiteProvider>

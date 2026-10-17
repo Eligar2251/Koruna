@@ -177,3 +177,11 @@
 .koruna-filters input[type=search], .koruna-filters select { min-width: 0; width: 100%; padding: 10px; border: 1px solid #d5e1d6; border-radius: 4px; background: white; color: #304f3b; font: inherit; }
 .koruna-filters .koruna-filters__check { display: flex; flex: 0 0 auto; align-items: center; padding: 10px 0; gap: 8px; }
 @media(max-width:640px) { .koruna-filters { flex-direction: column; align-items: stretch; } }
+.koruna-filters { flex-wrap: wrap; }
+.koruna-filters label { flex: 1 1 160px; }
+.koruna-filters .koruna-filters__search { flex-basis: 230px; }
+.koruna-filters__price { display: flex; align-items: center; gap: 6px; flex: 1 1 180px; min-width: 0; border: 0; padding: 0; margin: 0; font-size: 12px; }
+.koruna-filters__price legend { margin-bottom: 6px; }
+.koruna-filters input[type=number] { box-sizing: border-box; min-width: 0; width: 100%; padding: 10px 7px; border: 1px solid #d5e1d6; border-radius: 4px; color: #304f3b; font: inherit; background: white; }
+.koruna-filters__reset { border: 1px solid #d5e1d6; border-radius: 4px; padding: 10px; background: white; color: #1c6b5a; cursor: pointer; }
+@media(max-width:640px) { .koruna-filters label, .koruna-filters .koruna-filters__search, .koruna-filters__price { flex-basis: auto; } }

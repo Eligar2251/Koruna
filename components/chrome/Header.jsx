@@ -1,3 +1,5 @@
+import { NavLink } from './NavLink'
+import { CatalogMenu } from './CatalogMenu'
 import { SiteText, SiteLink, InquiryButton } from '../site/SiteProvider'
 import { SiteStyles } from './SiteStyles'
 import '../pages/home/design/page.css'
@@ -5,7 +7,8 @@ import { Brand } from '../brand/Brand'
 import { MenuButton } from './MenuButton'
 import { CartCount } from '../cart/CartCount'
 
-export function Header() {
+/** @param {{ categories?: import('../../lib/catalog').CatalogCategory[] }} props */
+export function Header({ categories = [] }) {
   return (
     <>
     <SiteStyles />
@@ -22,17 +25,17 @@ export function Header() {
               </div>
               <ul className={"t-menuwidgeticons__wrapper"}>
                 <li className={"t-menuwidgeticons__icon t-menuwidgeticons__icon_sm t-menuwidgeticons__search"}>
-                  <a className={"t-menuwidgeticons__link t-menuwidgeticons__link_search"} href={"/katalog"} role={"button"} aria-label={"Поиск по каталогу"}>
+                  <NavLink className={"t-menuwidgeticons__link t-menuwidgeticons__link_search"} href={"/katalog"} role={"button"} aria-label={"Поиск по каталогу"}>
                     <div className={"t-menuwidgeticons__img t-menuwidgeticons__img_search"}>
                       <svg viewBox={"0 0 22 22"} fill={"none"} xmlns={"http://www.w3.org/2000/svg"}>
                         <circle cx={"10.1224"} cy={"10.8801"} r={"7.69888"} transform={"rotate(47.1675 10.1224 10.8801)"} stroke={"#3d3d3d"} strokeWidth={"2"} />
                         <line x1={"16.4142"} y1={"17"} x2={"20.3033"} y2={"20.8891"} stroke={"#3d3d3d"} strokeWidth={"2"} strokeLinecap={"round"} />
                       </svg>
                     </div>
-                  </a>
+                  </NavLink>
                 </li>
                 <li className={"t-menuwidgeticons__icon t-menuwidgeticons__icon_sm t-menuwidgeticons__cart"}>
-                  <a className={"t-menuwidgeticons__link t-menuwidgeticons__link_cart"} href={"/korzina"} role={"button"} aria-label={"Корзина"}>
+                  <NavLink className={"t-menuwidgeticons__link t-menuwidgeticons__link_cart"} href={"/korzina"} role={"button"} aria-label={"Корзина"}>
                     <div className={"t-menuwidgeticons__img t-menuwidgeticons__img_carticon"}>
                       <svg viewBox={"0 0 22 22"} fill={"none"} xmlns={"http://www.w3.org/2000/svg"}>
                         <path d={"M3.67986 6.91023C3.72631 6.39482 4.15832 6 4.67582 6H17.3242C17.8417 6 18.2737 6.39482 18.3201 6.91023L19.4018 18.9102C19.4545 19.4956 18.9935 20 18.4058 20H3.59419C3.00646 20 2.54547 19.4956 2.59823 18.9102L3.67986 6.91023Z"} stroke={"#3d3d3d"} strokeWidth={"1.8"} />
@@ -40,7 +43,7 @@ export function Header() {
                       </svg>
                       <CartCount />
                     </div>
-                  </a>
+                  </NavLink>
                 </li>
               </ul>
               <MenuButton />
@@ -57,111 +60,38 @@ export function Header() {
                 <ul role={"list"} className={"t-menu-base__list t-menu__list "}>
                   <li className={"t-menu-base__list-item"}>
                     <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={""}>
-                      <a className={"t-menu__link-item"} href={"/"} data-menu-item-number={"1"}>
+                      <NavLink className={"t-menu__link-item"} href={"/"} data-menu-item-number={"1"}>
                         <SiteText id="d328e53dc456" fallback={"\u0413\u043b\u0430\u0432\u043d\u0430\u044f"} />
-                      </a>
+                      </NavLink>
                     </div>
                   </li>
-                  <li className={"t-menu-base__list-item"}>
-                    <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={"link_sub2_2050530551"}>
-                      <a className={"t-menu__link-item"} href={"/katalog"} data-menu-item-number={"2"}>
-                        <SiteText id="d0ef3540b088" fallback={"\u041a\u0430\u0442\u0430\u043b\u043e\u0433"} />
-                      </a>
-                    </div>
-                    <div className={"t-menusub"} data-submenu-hook={"link_sub2_2050530551"} data-submenu-margin={"15px"} data-add-submenu-arrow={"on"} data-columns-count={"1"}>
-                      <div className={"t-menusub__menu "}>
-                        <div className={"t-menusub__menu-wrapper"}>
-                          <div className={"t-menusub__innermenu-content t-menusub__innermenu-content_level1 t-menusub__innermenu-content_left"} data-submenu-hook={"link_sub2_2050530551"}>
-                            <ul role={"menu"} className={"t-menusub__innermenu-list t-menusub__list"}>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/listovye-materialy"} data-menu-item-number={"2"}>
-                                    <SiteText id="d2ea2dffe8cb" fallback={" \u041b\u0438\u0441\u0442\u043e\u0432\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/uteplitel"} data-menu-item-number={"2"}>
-                                    <SiteText id="3bde2b8fb3a3" fallback={" \u0423\u0442\u0435\u043f\u043b\u0438\u0442\u0435\u043b\u044c "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/polikarbonat"} data-menu-item-number={"2"}>
-                                    <SiteText id="9bbd30bdf89d" fallback={" \u041f\u043e\u043b\u0438\u043a\u0430\u0440\u0431\u043e\u043d\u0430\u0442 "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/gidro-paroizolyaziya"} data-menu-item-number={"2"}>
-                                    <SiteText id="a91e14fc9001" fallback={" \u0412\u0435\u0442\u0440\u043e- \u0438 \u043f\u0430\u0440\u043e\u0438\u0437\u043e\u043b\u044f\u0446\u0438\u044f "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/profil-karkas"} data-menu-item-number={"2"}>
-                                    <SiteText id="6b91aa48931a" fallback={" \u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0438 \u043a\u0430\u0440\u043a\u0430\u0441 "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/montajnaya-himiya"} data-menu-item-number={"2"}>
-                                    <SiteText id="ef2bf42db011" fallback={" \u041c\u043e\u043d\u0442\u0430\u0436\u043d\u0430\u044f \u0445\u0438\u043c\u0438\u044f "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/krepej-i-metizy"} data-menu-item-number={"2"}>
-                                    <SiteText id="16ef775ba3c3" fallback={" \u041a\u0440\u0435\u043f\u0435\u0436 \u0438 \u043c\u0435\u0442\u0438\u0437\u044b "} />
-                                  </a>
-                                </div>
-                              </li>
-                              <li className={"t-menusub__list-item t-menusub__innermenu-item t-name t-name_xs"} role={"none"}>
-                                <div className={"t-menusub__link-wrapper"}>
-                                  <a className={"t-menusub__link-item t-name t-name_xs"} role={"menuitem"} href={"/katalog/krovelnye-materialy"} data-menu-item-number={"2"}>
-                                    <SiteText id="b96e8191acf0" fallback={" \u041a\u0440\u043e\u0432\u0435\u043b\u044c\u043d\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b "} />
-                                  </a>
-                                </div>
-                              </li>
-                            </ul>
-                          </div>
-                          <div className={"t-menusub__innermenu"} style={{width: "250px"}} />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
+                  <CatalogMenu categories={categories} />
                   <li className={"t-menu-base__list-item"}>
                     <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={""}>
-                      <a className={"t-menu__link-item"} href={"/sotrudnichestvo"} data-menu-item-number={"3"}>
+                      <NavLink className={"t-menu__link-item"} href={"/sotrudnichestvo"} data-menu-item-number={"3"}>
                         <SiteText id="5a6da5b51fcb" fallback={"\u0421\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u0447\u0435\u0441\u0442\u0432\u043e"} />
-                      </a>
+                      </NavLink>
                     </div>
                   </li>
                   <li className={"t-menu-base__list-item"}>
                     <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={""}>
-                      <a className={"t-menu__link-item"} href={"/oplata-i-dostavka"} data-menu-item-number={"4"}>
+                      <NavLink className={"t-menu__link-item"} href={"/oplata-i-dostavka"} data-menu-item-number={"4"}>
                         <SiteText id="4156d0817d0f" fallback={"\u0414\u043e\u0441\u0442\u0430\u0432\u043a\u0430 \u0438 \u043e\u043f\u043b\u0430\u0442\u0430"} />
-                      </a>
+                      </NavLink>
                     </div>
                   </li>
                   <li className={"t-menu-base__list-item"}>
                     <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={""}>
-                      <a className={"t-menu__link-item"} href={"/o-kompanii"} data-menu-item-number={"5"}>
+                      <NavLink className={"t-menu__link-item"} href={"/o-kompanii"} data-menu-item-number={"5"}>
                         <SiteText id="2a0fba3dcf0f" fallback={"\u041e \u043a\u043e\u043c\u043f\u0430\u043d\u0438\u0438"} />
-                      </a>
+                      </NavLink>
                     </div>
                   </li>
                   <li className={"t-menu-base__list-item"}>
                     <div className={"t-menu__link-wrapper"} data-menu-submenu-hook={""}>
-                      <a className={"t-menu__link-item"} href={"/contact"} data-menu-item-number={"6"}>
+                      <NavLink className={"t-menu__link-item"} href={"/contact"} data-menu-item-number={"6"}>
                         <SiteText id="fca8d5aa3c1a" fallback={"\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b"} />
-                      </a>
+                      </NavLink>
                     </div>
                   </li>
                 </ul>
@@ -202,17 +132,17 @@ export function Header() {
                   </div>
                   <ul className={"t-menuwidgeticons__wrapper"}>
                     <li className={"t-menuwidgeticons__icon t-menuwidgeticons__icon_sm t-menuwidgeticons__search"}>
-                      <a className={"t-menuwidgeticons__link t-menuwidgeticons__link_search"} href={"/katalog"} role={"button"} aria-label={"Поиск по каталогу"}>
+                      <NavLink className={"t-menuwidgeticons__link t-menuwidgeticons__link_search"} href={"/katalog"} role={"button"} aria-label={"Поиск по каталогу"}>
                         <div className={"t-menuwidgeticons__img t-menuwidgeticons__img_search"}>
                           <svg viewBox={"0 0 22 22"} fill={"none"} xmlns={"http://www.w3.org/2000/svg"}>
                             <circle cx={"10.1224"} cy={"10.8801"} r={"7.69888"} transform={"rotate(47.1675 10.1224 10.8801)"} stroke={"#3d3d3d"} strokeWidth={"2"} />
                             <line x1={"16.4142"} y1={"17"} x2={"20.3033"} y2={"20.8891"} stroke={"#3d3d3d"} strokeWidth={"2"} strokeLinecap={"round"} />
                           </svg>
                         </div>
-                      </a>
+                      </NavLink>
                     </li>
                     <li className={"t-menuwidgeticons__icon t-menuwidgeticons__icon_sm t-menuwidgeticons__cart"}>
-                      <a className={"t-menuwidgeticons__link t-menuwidgeticons__link_cart"} href={"/korzina"} role={"button"} aria-label={"Корзина"}>
+                      <NavLink className={"t-menuwidgeticons__link t-menuwidgeticons__link_cart"} href={"/korzina"} role={"button"} aria-label={"Корзина"}>
                         <div className={"t-menuwidgeticons__img t-menuwidgeticons__img_carticon"}>
                           <svg viewBox={"0 0 22 22"} fill={"none"} xmlns={"http://www.w3.org/2000/svg"}>
                             <path d={"M3.67986 6.91023C3.72631 6.39482 4.15832 6 4.67582 6H17.3242C17.8417 6 18.2737 6.39482 18.3201 6.91023L19.4018 18.9102C19.4545 19.4956 18.9935 20 18.4058 20H3.59419C3.00646 20 2.54547 19.4956 2.59823 18.9102L3.67986 6.91023Z"} stroke={"#3d3d3d"} strokeWidth={"1.8"} />
@@ -220,7 +150,7 @@ export function Header() {
                           </svg>
                           <CartCount />
                         </div>
-                      </a>
+                      </NavLink>
                     </li>
                   </ul>
                   <div className={"t-menu-base__buttons"}>
