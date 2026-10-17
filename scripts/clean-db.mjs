@@ -171,8 +171,10 @@ function databaseConfig(args) {
   const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || ''
   if (!connectionString) {
     throw new Error(
-      'Не задан DATABASE_URL. Скопируйте .env.example в .env и вставьте URI из Project Settings → Database.\n' +
-        'Нужен direct connection или session pooler, порт 5432.',
+      'Прямое SQL-подключение не настроено. Сайт использует SUPABASE_URL и SUPABASE_ANON_KEY, без строки Postgres.\n' +
+        'Для очистки схемы без строки подключения выполните supabase/clean.sql в Supabase SQL Editor.\n' +
+        'Для очистки только файлов используйте --storage-only (нужен серверный service_role).\n' +
+        'Устаревший режим прямого SQL поддерживает DATABASE_URL: direct connection или session pooler, порт 5432.',
     )
   }
   assertNotPlaceholder(connectionString, 'DATABASE_URL')

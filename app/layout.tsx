@@ -1,8 +1,18 @@
+import '../components/site/design/fonts.css'
+import { headers } from 'next/headers'
+import { SiteProvider } from '../components/site/SiteProvider'
+import { PublicTools } from '../components/site/PublicTools'
+import { publicSettings, publicCatalog } from '../lib/public-data'
+import { Header } from '../components/chrome/Header'
+import { PublicHeader } from '../components/chrome/PublicHeader'
+import { defaultSettings } from '../lib/site-config'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import ViewportScale from '../components/chrome/ViewportScale'
 
 export const metadata: Metadata = {
-  title: 'РегионЛес',
+  title: 'ЦСБ — Центральная Строительная База',
+  icons: { icon: '/assets/favicon.png' },
 }
 
 export const viewport: Viewport = {
@@ -10,13 +20,21 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export const dynamic = 'force-dynamic'
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const adminArea = (await headers()).get('x-csb-admin-area') === '1'
+  const [settings, catalog] = await Promise.all([publicSettings().catch(() => defaultSettings), publicCatalog().catch(() => ({ categories: [], products: [] }))])
   return (
     <html lang="ru">
-      <head>
-        <link rel="stylesheet" href="/assets/admin.css" />
-      </head>
-      <body>{children}</body>
+      <body className="t-body" style={{ margin: 0 }}>
+        <ViewportScale />
+        <SiteProvider settings={settings} adminArea={adminArea}>
+          <PublicHeader><Header categories={catalog.categories} /></PublicHeader>
+          {children}
+          <PublicTools />
+        </SiteProvider>
+      </body>
     </html>
   )
 }

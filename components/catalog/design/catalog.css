@@ -1,0 +1,206 @@
+.koruna-nolink {
+  cursor: default;
+}
+
+.koruna-rec {
+  padding: 28px 0 64px;
+  background: #fff;
+}
+
+.koruna-catalog {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  color: #3d3d3d;
+  font-family: var(--t-text-font, Arial, sans-serif);
+}
+
+.koruna-catalog__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 22px;
+}
+
+.koruna-catalog__head h2 {
+  margin: 0;
+  color: #111;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+.koruna-catalog__head p,
+.koruna-catalog__state {
+  margin: 8px 0 0;
+  color: #606060;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.koruna-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  align-items: stretch;
+  margin: 0 0 28px;
+}
+
+.koruna-grid:last-child {
+  margin-bottom: 0;
+}
+
+.koruna-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  border: 1px solid #e7e7e7;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.koruna-card__media {
+  aspect-ratio: 1;
+  background: #f3f3f3;
+}
+
+.koruna-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.koruna-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 16px;
+  flex: 1;
+}
+
+.koruna-card__body h3 {
+  margin: 0;
+  color: #111;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.koruna-card__meta,
+.koruna-card__price {
+  margin: 0;
+  font-size: 14px;
+}
+
+.koruna-card__price {
+  color: #1c6b5a;
+  font-weight: 650;
+}
+
+.koruna-card__text {
+  margin: 0;
+  color: #606060;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.koruna-card__more {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1c6b5a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.koruna-card__add {
+  align-self: flex-start;
+  margin-top: auto;
+  border: 0;
+  border-radius: 30px;
+  background: #1c6b5a;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.koruna-card__add:hover {
+  background: #17584a;
+}
+
+@media (max-width: 640px) {
+  .koruna-catalog__head {
+    display: block;
+  }
+
+  .koruna-catalog__head h2 {
+    font-size: 26px;
+  }
+}
+
+/* Fixed product slots: every title, price and quantity stays on the same baseline. */
+.koruna-catalog *, .koruna-catalog *::before, .koruna-catalog *::after { box-sizing: border-box; }
+.koruna-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); grid-auto-rows: 1fr; }
+.koruna-card { height: auto; border-radius: 8px; }
+.koruna-card__media { height: 210px; aspect-ratio: auto; overflow: hidden; }
+.koruna-card__media img { object-fit: contain; }
+.koruna-card__body h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 24px; height: 24px; }
+.koruna-card--product .koruna-card__body { display: grid; grid-template-rows: 24px 26px 22px 26px 42px 18px; gap: 8px; }
+.koruna-card__price { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 17px; line-height: 26px; font-variant-numeric: tabular-nums; }
+.koruna-card__meta { white-space: nowrap; line-height: 22px; }
+.koruna-card__more { margin: 0; align-self: center; justify-self: start; font-size: 14px; }
+.koruna-card__actions { display: flex; gap: 10px; align-items: center; min-width: 0; flex-wrap: nowrap; }
+.koruna-card__add { margin: 0; flex: 1; white-space: nowrap; min-width: 0; padding: 11px 8px; border-radius: 5px; height: 42px; }
+.koruna-card__add:disabled { background: #e8efec; color: #718078; cursor: not-allowed; }
+.koruna-qty { display: flex; flex: 0 0 102px; align-items: center; height: 42px; border: 1px solid #dce4df; border-radius: 5px; overflow: hidden; }
+.koruna-qty button { width: 30px; flex: 0 0 30px; padding: 0; height: 100%; border: 0; background: #f4f7f5; cursor: pointer; color: #1c6b5a; font-size: 19px; }
+.koruna-qty input { width: 40px; min-width: 0; border: 0; padding: 0; text-align: center; font: inherit; font-size: 14px; appearance: textfield; background: #fff; color: #222; }
+.koruna-qty input::-webkit-inner-spin-button { appearance: none; }
+.koruna-card__feedback { font-size: 11px; line-height: 18px; white-space: nowrap; color: #1c6b5a; overflow: hidden; text-overflow: ellipsis; }
+.koruna-description { max-width: min(560px, calc(100vw - 40px)); border: 1px solid #dce4df; border-radius: 10px; padding: 28px; color: #333; font-family: Arial, sans-serif; }
+.koruna-description::backdrop { background: #112e25aa; }
+.koruna-description h2 { margin: 0 0 18px; font-size: 22px; }
+.koruna-description p { white-space: pre-wrap; line-height: 1.6; }
+.koruna-description button { background: #1c6b5a; color: white; border: 0; padding: 12px 24px; border-radius: 5px; cursor: pointer; }
+.koruna-filters { display: flex; align-items: flex-end; gap: 16px; margin: 20px 0 12px; padding: 18px; border: 1px solid #dce5dc; border-radius: 6px; background: #f7faf7; }
+.koruna-filters label { display: grid; gap: 6px; font-size: 12px; flex: 1; }
+.koruna-filters input[type=search], .koruna-filters select { min-width: 0; width: 100%; padding: 10px; border: 1px solid #d5e1d6; border-radius: 4px; background: white; color: #304f3b; font: inherit; }
+.koruna-filters .koruna-filters__check { display: flex; flex: 0 0 auto; align-items: center; padding: 10px 0; gap: 8px; }
+@media(max-width:640px) { .koruna-filters { flex-direction: column; align-items: stretch; } }
+.koruna-filters { flex-wrap: wrap; }
+.koruna-filters label { flex: 1 1 160px; }
+.koruna-filters .koruna-filters__search { flex-basis: 230px; }
+.koruna-filters__price { display: flex; align-items: center; gap: 6px; flex: 1 1 180px; min-width: 0; border: 0; padding: 0; margin: 0; font-size: 12px; }
+.koruna-filters__price legend { margin-bottom: 6px; }
+.koruna-filters input[type=number] { box-sizing: border-box; min-width: 0; width: 100%; padding: 10px 7px; border: 1px solid #d5e1d6; border-radius: 4px; color: #304f3b; font: inherit; background: white; }
+.koruna-filters__reset { border: 1px solid #d5e1d6; border-radius: 4px; padding: 10px; background: white; color: #1c6b5a; cursor: pointer; }
+@media(max-width:640px) { .koruna-filters label, .koruna-filters .koruna-filters__search, .koruna-filters__price { flex-basis: auto; } }
+
+/* Product filters occupy their own column, never a horizontal toolbar. */
+.koruna-products-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 28px; }
+.koruna-products-results { min-width: 0; }
+.koruna-filter-sidebar { position: sticky; top: 100px; padding: 20px; background: #f7faf7; border: 1px solid #dce5dc; border-radius: 6px; }
+.koruna-filter-sidebar__heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.koruna-filter-sidebar h3 { margin: 0; font-size: 18px; font-weight: 500; color: #1c6b5a; }
+.koruna-filter-sidebar .koruna-filters { display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; margin: 0; padding: 0; border: 0; background: none; }
+.koruna-filter-sidebar .koruna-filters label, .koruna-filter-sidebar .koruna-filters__price { min-width: 0; margin: 0; }
+.koruna-products-results > .koruna-catalog__state { margin: 0 0 16px; }
+.koruna-filter-toggle, .koruna-filter-close, .koruna-filter-backdrop { display: none; }
+@media(max-width: 800px) {
+ .koruna-products-layout { grid-template-columns: minmax(0,1fr); }
+ .koruna-filter-toggle { display: inline-flex; margin-bottom: 16px; padding: 11px 20px; border: 1px solid #1c6b5a; border-radius: 5px; color: #1c6b5a; background: white; font: inherit; cursor: pointer; }
+ .koruna-filter-sidebar { display: none; position: fixed; z-index: 2001; inset: 0 auto 0 0; width: min(320px, calc(100vw - 32px)); max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; border-radius: 0; padding: 24px; }
+ .koruna-filter-sidebar.is-open { display: block; }
+ .koruna-filter-close { display: block; padding: 4px 8px; border: 0; background: transparent; color: #1c6b5a; font: 26px/1 Arial,sans-serif; cursor: pointer; }
+ .koruna-filter-backdrop { display: block; position: fixed; inset: 0; z-index: 2000; border: 0; background: #112e2580; cursor: pointer; }
+}

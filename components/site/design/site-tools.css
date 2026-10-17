@@ -1,0 +1,37 @@
+.csb-legalbar, .csb-cookie, .csb-inquiry, .csb-policy { font: 14px/1.6 Arial,sans-serif; color: #344d40; box-sizing: border-box; }
+.csb-legalbar { padding: 28px max(20px, calc((100% - 1200px)/2)); background: #eff5ef; display: flex; gap: 40px; justify-content: space-between; }
+.csb-legalbar p { margin: 4px 0; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.csb-legalbar nav { display: flex; flex-direction: column; min-width: 220px; gap: 7px; }
+.csb-legalbar a, .csb-legalbar button, .csb-cookie a, .csb-inquiry a, .csb-policy a, .csb-consent a { color: #1c6b5a; text-decoration: underline; }
+.csb-legalbar button { border: 0; background: transparent; text-align: left; padding: 0; cursor: pointer; font: inherit; }
+.csb-legalbar summary { cursor: pointer; font-size: 12px; }
+.csb-cookie { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: min(1100px, calc(100% - 32px)); z-index: 100000; display: flex; align-items: center; gap: 24px; background: #fff; border: 1px solid #cbdccf; border-radius: 8px; box-shadow: 0 8px 35px #173c2525; padding: 18px 22px; }
+.csb-cookie p { margin: 0; flex: 1; font-size: 12px; }
+.csb-cookie button, .csb-primary { padding: 12px 18px; background: #1c6b5a; color: white; border: 0; border-radius: 5px; font: inherit; cursor: pointer; }
+.csb-inquiry { border: 1px solid #d6e3d7; border-radius: 10px; padding: 32px; width: min(520px, calc(100vw - 30px)); max-height: 90vh; overflow-y: auto; }
+.csb-inquiry::backdrop { background: #122c22a8; }
+.csb-inquiry h2 { font-size: 24px; color: #1c6b5a; margin: 0 28px 10px 0; }
+.csb-inquiry p { margin: 0 0 18px; }
+.csb-inquiry form { display: grid; gap: 14px; }
+.csb-inquiry label { display: grid; gap: 5px; font-size: 13px; }
+.csb-inquiry input:not([type=checkbox]), .csb-inquiry textarea { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #cadace; border-radius: 4px; font: inherit; background: #fff; color: #223c2d; }
+.csb-inquiry__close { position: absolute; right: 15px; top: 12px; border: 0; background: none; color: #1c6b5a; font-size: 28px; cursor: pointer; }
+.csb-consent { display: flex !important; grid-template-columns: none !important; gap: 10px !important; align-items: flex-start; font: 11px/1.6 Arial,sans-serif !important; color: #52695a; }
+.csb-consent input[type=checkbox] { width: 17px !important; height: 17px; flex: 0 0 17px; margin: 2px 0 0; padding: 0; accent-color: #1c6b5a; }
+.csb-form-note, .csb-error { color: #a0412f; font-size: 12px; }
+.csb-inquiry button:disabled { opacity: .5; cursor: not-allowed; }
+.csb-policy { width: min(950px, calc(100% - 40px)); margin: 35px auto 65px; }
+.csb-policy h1 { font-size: 32px; font-weight: 500; color: #1c6b5a; line-height: 1.25; }
+.csb-policy h2 { font-size: 20px; margin-top: 28px; }
+.csb-policy p { white-space: pre-wrap; }
+.csb-policy .draft { padding: 18px; border: 1px solid #e5d8af; background: #fff8e5; }
+#t-header .t-menu-base__list-item { position: relative; }
+@media(min-width:961px) { #t-header .t-menu-base__list-item:hover > .t-menusub, #t-header .t-menu-base__list-item:focus-within > .t-menusub { display: block !important; opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; top: 100%; left: 0; transform: none !important; } }
+@media(max-width:700px) { .csb-legalbar { flex-direction: column; gap: 20px; } .csb-cookie { flex-direction: column; gap: 10px; align-items: stretch; padding: 14px; } .csb-cookie button { padding: 9px; } .csb-inquiry { padding: 24px; } }
+button.koruna-nolink { font: inherit; cursor: pointer; border: 0; }
+button.koruna-nolink:not(.t-btnflex) { background-color: transparent; padding: 0; }
+button.koruna-nolink:focus-visible { outline: 2px solid #c47a3a; outline-offset: 3px; }
+.csb-location { box-sizing: border-box; height: 100%; min-height: 400px; padding: 50px 25px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 16px; color: #1c6b5a; background: #eff5f0; font-family: Arial, sans-serif; }
+.csb-location h2, .csb-location p { margin: 0; max-width: 480px; line-height: 1.5; }
+.csb-location img { max-width: 100%; max-height: 45vh; object-fit: contain; }
+.csb-location a { color: inherit !important; text-decoration: underline !important; }

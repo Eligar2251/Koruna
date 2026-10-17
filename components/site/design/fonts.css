@@ -1,0 +1,7 @@
+@font-face {font-family:'Golos Text';src:url('/assets/fonts/golos-text/GolosText-Regular.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap;}
+@font-face {font-family:'Golos Text';src:url('/assets/fonts/golos-text/GolosText-Medium.woff2') format('woff2');font-style:normal;font-weight:500;font-display:swap;}
+@font-face {font-family:'Golos Text';src:url('/assets/fonts/golos-text/GolosText-SemiBold.woff2') format('woff2');font-style:normal;font-weight:600;font-display:swap;}
+@font-face {font-family:'Golos Text';src:url('/assets/fonts/golos-text/GolosText-Bold.woff2') format('woff2');font-style:normal;font-weight:700 900;font-display:swap;}
+:root {--csb-font:'Golos Text',Arial,sans-serif;--t-text-font:var(--csb-font);--t-headline-font:var(--csb-font);}
+html body, body button, body input, body select, body textarea,
+body .tn-atom, body .t-menu__link-item, body [class*="koruna-"], body [class*="csb-"], body .admin-page {font-family:var(--csb-font) !important;}
