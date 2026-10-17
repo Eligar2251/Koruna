@@ -1,6 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { orderStatus } from './inventory.mjs'
+
+const queues = new Map()
 
 const PHONE = /[0-9]/g
 
@@ -24,12 +27,22 @@ export function buildOrder(body, catalog) {
     throw new Error('Укажите товары')
   }
   const products = new Map((catalog.products || []).map((item) => [item.id, item]))
-  const items = []
+  const merged = new Map()
   for (const raw of body.items) {
+    const id = String(raw?.product_id || '')
+    const qty = Number(raw?.qty)
+    if (!Number.isInteger(qty) || qty < 1 || qty > 999) throw new Error('Некорректное количество')
+    merged.set(id, (merged.get(id) || 0) + qty)
+  }
+  const items = []
+  for (const [product_id, amount] of merged) {
+    const raw = { product_id, qty: amount }
     const product = products.get(String(raw?.product_id || ''))
     if (!product) throw new Error('Товар не найден')
+    if (product.in_stock === false) throw new Error('Товар недоступен для заказа: ' + product.name)
     const qty = Number(raw.qty)
     if (!Number.isInteger(qty) || qty < 1 || qty > 999) throw new Error('Некорректное количество')
+    if (product.stock_quantity != null && qty > product.stock_quantity) throw new Error('Недостаточно товара: ' + product.name)
     items.push({
       product_id: product.id,
       name: product.name,
@@ -55,7 +68,7 @@ export function buildOrder(body, catalog) {
 }
 
 export function createOrderBook(file) {
-  let queue = Promise.resolve()
+
 
   async function read() {
     try {
@@ -69,7 +82,7 @@ export function createOrderBook(file) {
   }
 
   function update(mutator) {
-    const run = queue.then(async () => {
+    const run = (queues.get(file) || Promise.resolve()).then(async () => {
       const data = await read()
       const result = await mutator(data)
       await mkdir(path.dirname(file), { recursive: true })
@@ -78,11 +91,20 @@ export function createOrderBook(file) {
       await rename(tmp, file)
       return result
     })
-    queue = run.then(() => undefined, () => undefined)
+    queues.set(file, run.then(() => undefined, () => undefined))
     return run
   }
 
   return {
+    setStatus(id, status) {
+      orderStatus(status)
+      return update((data) => {
+        const row = data.orders.find((order) => order.id === id)
+        if (!row) throw new Error('Заказ не найден')
+        row.status = status
+        return row
+      })
+    },
     async list() {
       const data = await read()
       return data.orders.slice().reverse()

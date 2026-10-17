@@ -149,6 +149,15 @@ export function createAccountBook(file) {
         return { id: row.id, email: row.email, name: row.name, created_at: row.created_at }
       })
     },
+    resetPassword(email, password) {
+      const input = cleanAccount({ email, password, name: 'Администратор' })
+      return update(async (data) => {
+        const row = data.admins.find((item) => item.email === input.email)
+        if (!row) throw new Error('Администратор не найден')
+        row.password_key = await passwordKey(input.password)
+        return { id: row.id, email: row.email, name: row.name }
+      })
+    },
     async authenticate(email, password) {
       const data = await read()
       const row = data.admins.find((item) => item.email === String(email || '').trim().toLowerCase())

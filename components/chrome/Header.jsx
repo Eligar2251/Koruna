@@ -1,3 +1,4 @@
+import { SiteStyles } from './SiteStyles'
 import '../pages/home/design/page.css'
 import { Brand } from '../brand/Brand'
 import { MenuButton } from './MenuButton'
@@ -5,6 +6,8 @@ import { CartCount } from '../cart/CartCount'
 
 export function Header() {
   return (
+    <>
+    <SiteStyles />
     <header id={"t-header"} className={"t-records"}>
       <div id={"rec2050530551"} className={"r t-rec"} data-record-type={"1272"}>
         <div id={"nav2050530551marker"} />
@@ -235,5 +238,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </>
   )
 }

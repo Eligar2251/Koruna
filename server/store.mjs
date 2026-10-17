@@ -1,6 +1,9 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { stockInput } from './inventory.mjs'
+
+const fileQueues = new Map()
 
 const SLUG = /^[a-z0-9-]{1,120}$/
 
@@ -119,7 +122,7 @@ function publicCatalog(categories, products) {
 }
 
 export function createFileStore(file) {
-  let queue = Promise.resolve()
+
 
   async function read() {
     try {
@@ -131,7 +134,7 @@ export function createFileStore(file) {
   }
 
   function update(mutator) {
-    const run = queue.then(async () => {
+    const run = (fileQueues.get(file) || Promise.resolve()).then(async () => {
       const data = await read()
       data.categories ??= []
       data.products ??= []
@@ -142,12 +145,32 @@ export function createFileStore(file) {
       await rename(tmp, file)
       return result
     })
-    queue = run.then(() => undefined, () => undefined)
+    fileQueues.set(file, run.then(() => undefined, () => undefined))
     return run
   }
 
   return {
     mode: 'file',
+    async stockMovements() {
+      const data = await read()
+      return (data.stock_movements || []).slice().reverse().slice(0, 200)
+    },
+    adjustStock(id, body) {
+      const input = stockInput(body)
+      return update((data) => {
+        const product = data.products.find((row) => row.id === id)
+        if (!product) throw new Error('Товар не найден')
+        const balance = (product.stock_quantity ?? 0) + input.delta
+        if (balance < 0 || balance > 1000000000) throw new Error('Некорректный остаток: недостаточно товара или превышен лимит')
+        product.stock_quantity = balance
+        product.in_stock = balance > 0
+        product.updated_at = new Date().toISOString()
+        const movement = { id: randomUUID(), product_id: id, product_name: product.name, ...input, balance, created_at: product.updated_at }
+        data.stock_movements ??= []
+        data.stock_movements.push(movement)
+        return movement
+      })
+    },
     async catalog() {
       const data = await read()
       return publicCatalog(data.categories, data.products)
@@ -192,6 +215,7 @@ export function createFileStore(file) {
         const current = id ? data.products.find((item) => item.id === id) : null
         if (id && !current) throw new Error('Товар не найден')
         const input = productInput(body, current?.slug)
+        if (current?.stock_quantity != null) input.in_stock = current.stock_quantity > 0
         if (input.category_id && !data.categories.some((item) => item.id === input.category_id)) {
           throw new Error('Раздел не найден')
         }
@@ -231,12 +255,24 @@ export function createSupabaseStore(client) {
     }
     if (/duplicate key|unique/i.test(error.message)) throw new Error('Такой адрес уже есть')
     if (/row-level security|permission denied|42501/i.test(error.message)) throw new Error('Нет доступа')
+    if (/недостаточно|остаток|товар не найден|некоррект/i.test(error.message)) throw new Error(error.message)
     if (/jwt|invalid claim|PGRST301/i.test(error.message)) throw new Error('Нужен вход')
     throw new Error('Не удалось сохранить данные')
   }
 
   return {
     mode: 'supabase',
+    async stockMovements() {
+      const result = await client.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(200)
+      raise(result.error)
+      return result.data || []
+    },
+    async adjustStock(id, body) {
+      const input = stockInput(body)
+      const result = await client.rpc('adjust_stock', { p_product_id: id, p_delta: input.delta, p_kind: input.kind, p_note: input.note })
+      raise(result.error)
+      return result.data
+    },
     async catalog() {
       const categories = await client.from('categories').select('*').eq('is_active', true).order('sort_order')
       raise(categories.error)
@@ -273,11 +309,12 @@ export function createSupabaseStore(client) {
     },
     async saveProduct(body, id) {
       const current = id
-        ? await client.from('products').select('slug,image_url').eq('id', id).maybeSingle()
+        ? await client.from('products').select('*').eq('id', id).maybeSingle()
         : { data: null, error: null }
       raise(current.error)
       if (id && !current.data) throw new Error('Товар не найден')
       const input = productInput(body, current.data?.slug)
+      if (current.data?.stock_quantity != null) input.in_stock = current.data.stock_quantity > 0
       if (!id) {
         if (!Object.hasOwn(input, 'image_url')) input.image_url = null
         if (!Object.hasOwn(input, 'category_id')) input.category_id = null

@@ -45,15 +45,15 @@ export async function CatalogFill({ mode, slug }: { mode: string; slug: string }
         {visible.length ? (
           <div className="koruna-grid">
             {visible.map((product) => (
-              <article className="koruna-card" key={product.id}>
+              <article className="koruna-card koruna-card--product" key={product.id}>
                 <div className="koruna-card__media">
                   {product.image_url ? <img src={product.image_url} alt="" /> : null}
                 </div>
                 <div className="koruna-card__body">
-                  <h3>{product.name}</h3>
+                  <h3 title={product.name}>{product.name}</h3>
                   <p className="koruna-card__price">{priceLine(product)}</p>
                   <p className="koruna-card__meta">{product.in_stock === false ? 'Под заказ' : 'В наличии'}</p>
-                  {product.description ? <Description text={product.description} /> : null}
+                  <Description text={product.description || "Описание пока не добавлено."} title={product.name} />
                   <AddButton product={product} />
                 </div>
               </article>
@@ -65,6 +65,6 @@ export async function CatalogFill({ mode, slug }: { mode: string; slug: string }
       </div>
     )
   } catch {
-    return null
+    return <p className="koruna-catalog__state" role="alert">Не удалось загрузить каталог. Попробуйте обновить страницу.</p>
   }
 }

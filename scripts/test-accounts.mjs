@@ -26,6 +26,9 @@ test('пароль хранится односторонним JWT-ключом,
   assert.equal(readAccess(key), null)
   assert.equal(await book.authenticate('admin@csb.local', 'CsbAdmin-2026') !== null, true)
   await assert.rejects(() => book.create({ email: 'admin@csb.local', name: 'Второй', password: 'CsbAdmin-2026' }))
+  await book.resetPassword('admin@csb.local', 'Changed-password-2026')
+  assert.equal(await book.authenticate('admin@csb.local', 'CsbAdmin-2026'), null)
+  assert.ok(await book.authenticate('admin@csb.local', 'Changed-password-2026'))
   await rm(dir, { recursive: true })
 })
 

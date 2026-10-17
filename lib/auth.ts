@@ -1,5 +1,4 @@
-import { randomBytes } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { readSupabaseConfig } from '../server/supabase-config.mjs'
 import path from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
@@ -12,7 +11,7 @@ import { createFileStore, createSupabaseStore } from '../server/store.mjs'
 
 type CatalogStore = ReturnType<typeof createFileStore> | ReturnType<typeof createSupabaseStore>
 import { json } from './http'
-import { readCookie } from './server'
+import { getStore, readCookie } from './server'
 
 const accountsFile = path.join(process.cwd(), 'data', 'admins.json')
 
@@ -30,23 +29,7 @@ export type AdminContext = {
 }
 
 export function configuredSupabase() {
-  const url = process.env.SUPABASE_URL || ''
-  const key = process.env.SUPABASE_ANON_KEY || ''
-  if (!url || !key) return null
-  if (/YOUR_|your-anon-key|your-service-role-key|service_role/i.test(`${url} ${key}`)) return null
-  if (jwtRole(key) === 'service_role') return null
-  return { url: url.replace(/\/+$/, ''), key }
-}
-
-function jwtRole(key: string) {
-  const part = key.split('.')[1]
-  if (!part) return ''
-  try {
-    const json = JSON.parse(Buffer.from(part, 'base64url').toString('utf8')) as { role?: string }
-    return json.role || ''
-  } catch {
-    return ''
-  }
+  return readSupabaseConfig(process.env)
 }
 
 export function supabaseClient(accessToken?: string) {
@@ -117,16 +100,7 @@ export function accountBook() {
 }
 
 export async function ensureLocalAdmin(book: AccountBook = accountBook()) {
-  const current = await book.list()
-  if (current.length) return book
-  const email = (process.env.ADMIN_EMAIL || 'admin@csb.local').trim().toLowerCase()
-  const given = process.env.ADMIN_PASSWORD || ''
-  const password = given.length >= 8 && given !== 'replace-me' ? given : randomBytes(9).toString('base64url')
-  await book.create({ email, name: 'Администратор', password })
-  if (password !== given) {
-    await mkdir(path.dirname(accountsFile), { recursive: true })
-    await writeFile(path.join(path.dirname(accountsFile), 'admin-password.txt'), `${email}\n${password}\n`, { mode: 0o600 })
-  }
+  // Accounts are created explicitly with the server CLI, never by a login request.
   return book
 }
 
@@ -140,7 +114,7 @@ export async function openAdmin(req: Request): Promise<{ session: AdminContext }
     if (!account) return { response: json({ error: 'Нужен вход' }, 401) }
     return {
       session: {
-        store: createFileStore(path.join(process.cwd(), 'data', 'catalog.json')),
+        store: await getStore(),
         client: null,
         access,
         refresh: access,

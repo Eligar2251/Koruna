@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { hasSiteHeader, supabaseClient } from '../../../lib/auth'
 import { fail, json, readJson } from '../../../lib/http'
 import { getStore } from '../../../lib/server'
@@ -30,9 +31,10 @@ export async function POST(req: Request) {
     const order = buildOrder(body, await store.catalog())
     const remote = supabaseClient()
     if (remote && store.mode === 'supabase') {
-      const inserted = await remote.from('orders').insert(order).select('id').single()
-      if (inserted.error || !inserted.data) return json({ error: 'Не удалось сохранить заказ' }, 503)
-      return json({ id: inserted.data.id })
+      const id = randomUUID()
+      const inserted = await remote.from('orders').insert({ ...order, id })
+      if (inserted.error) return json({ error: 'Не удалось сохранить заказ' }, 503)
+      return json({ id })
     }
     const saved = await createOrderBook(path.join(process.cwd(), 'data', 'orders.json')).add(order)
     return json({ id: saved.id })

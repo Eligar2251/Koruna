@@ -1,6 +1,10 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import { Brand } from '../../components/brand/Brand'
+import { adminApi as api } from '../../components/admin/api'
+import { Orders, Warehouse, type Order, type Movement } from '../../components/admin/Operations'
+import { formatPrice } from '../../lib/format'
 
 const PAGES: Array<[string, string]> = [
   ['', 'Свой адрес'],
@@ -38,6 +42,7 @@ type Product = {
   price: number | null
   sort_order: number
   description: string | null
+  stock_quantity?: number | null
   in_stock: boolean
   is_active: boolean
   image_url: string | null
@@ -95,20 +100,6 @@ const emptyProduct = (): ProductForm => ({
   error: '',
 })
 
-async function api(url: string, options: RequestInit = {}) {
-  const headers = new Headers(options.headers)
-  headers.set('x-csb-request', '1')
-  if (options.body && !headers.has('content-type')) headers.set('content-type', 'application/json')
-  const response = await fetch(url, {
-    ...options,
-    credentials: 'same-origin',
-    headers,
-  })
-  const data = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(data.error || 'Ошибка запроса')
-  return data
-}
-
 function fileToBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
@@ -129,35 +120,52 @@ export default function AdminPage() {
   const [preview, setPreview] = useState('')
   const [fileKey, setFileKey] = useState(0)
   const [staff, setStaff] = useState<Array<{ id?: string; user_id?: string; email: string; name: string }>>([])
-  const [orders, setOrders] = useState<Array<{ id: string; customer_name: string; phone: string; total: number | null; created_at: string; items?: unknown[] }>>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [movements, setMovements] = useState<Movement[]>([])
+  const [tab, setTab] = useState('products')
+  const [query, setQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [notice, setNotice] = useState('')
+  const [globalError, setGlobalError] = useState('')
+  const [sectionErrors, setSectionErrors] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
+  const tabs: Record<string, string> = { products: 'Товары', categories: 'Категории', orders: 'Заказы', stock: 'Складской учёт', staff: 'Администраторы' }
   const [staffError, setStaffError] = useState('')
 
   function showApp(session: { mode?: string }) {
     setAuthed(true)
-    setMode(session.mode === 'file' ? 'Файл' : 'Supabase')
+    setMode(session.mode === 'file' ? 'Локальный режим' : 'Supabase')
   }
 
   async function load() {
     const data = await api('/api/admin/catalog')
     setCategories(data.categories || [])
     setProducts(data.products || [])
-    const [staffResult, orderResult] = await Promise.allSettled([
-      api('/api/admin/staff'),
-      api('/api/admin/orders'),
+    const results = await Promise.allSettled([
+      api('/api/admin/staff'), api('/api/admin/orders'), api('/api/admin/inventory'),
     ])
-    setStaff(staffResult.status === 'fulfilled' ? staffResult.value.staff || [] : [])
-    setOrders(orderResult.status === 'fulfilled' ? orderResult.value.orders || [] : [])
+    const errors: Record<string, string> = {}
+    const keys = ['staff', 'orders', 'stock']
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') errors[keys[index]] = result.reason?.message || 'Не удалось загрузить раздел'
+    })
+    setSectionErrors(errors)
+    if (results[0].status === 'fulfilled') setStaff(results[0].value.staff || [])
+    if (results[1].status === 'fulfilled') setOrders(results[1].value.orders || [])
+    if (results[2].status === 'fulfilled') setMovements(results[2].value.movements || [])
   }
 
   useEffect(() => {
     let cancelled = false
     api('/api/admin/session')
       .then(async (session) => {
-        if (cancelled || !session.ok) return
+        if (cancelled) return
+        setMode(session.mode === 'file' ? 'Локальный режим' : 'Supabase')
+        if (!session.ok) return
         showApp(session)
         await load()
       })
-      .catch(() => {})
+      .catch(err => { setGlobalError(err.message || 'Не удалось загрузить панель.'); setLoginError(err.message || 'Не удалось загрузить панель.') })
     return () => {
       cancelled = true
     }
@@ -166,6 +174,7 @@ export default function AdminPage() {
   async function onLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
+    setSaving(true)
     try {
       await api('/api/admin/login', {
         method: 'POST',
@@ -176,7 +185,7 @@ export default function AdminPage() {
       setLoginError('')
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : 'Ошибка запроса')
-    }
+    } finally { setSaving(false) }
   }
 
   async function onLogout() {
@@ -226,15 +235,17 @@ export default function AdminPage() {
       is_active: categoryForm.is_active,
     }
     try {
+      setSaving(true)
       await api(categoryForm.id ? `/api/admin/categories/${categoryForm.id}` : '/api/admin/categories', {
         method: categoryForm.id ? 'PUT' : 'POST',
         body: JSON.stringify(body),
       })
       setCategoryForm(emptyCategory())
+      setNotice('Категория сохранена')
       await load()
     } catch (err) {
       setCategoryForm((form) => ({ ...form, error: err instanceof Error ? err.message : 'Ошибка запроса' }))
-    }
+    } finally { setSaving(false) }
   }
 
   async function onProduct(event: FormEvent<HTMLFormElement>) {
@@ -251,30 +262,35 @@ export default function AdminPage() {
       is_active: productForm.is_active,
       clear_image: productForm.clear_image,
     }
-    const file = (event.currentTarget.elements.namedItem('image') as HTMLInputElement | null)?.files?.[0]
-    if (file) {
-      body.image_type = file.type
-      body.image_base64 = await fileToBase64(file)
-    }
+    const formElement = event.currentTarget
     try {
+      setSaving(true)
+      const file = (formElement.elements.namedItem('image') as HTMLInputElement | null)?.files?.[0]
+      if (file) {
+        body.image_type = file.type
+        body.image_base64 = await fileToBase64(file)
+      }
       await api(productForm.id ? `/api/admin/products/${productForm.id}` : '/api/admin/products', {
         method: productForm.id ? 'PUT' : 'POST',
         body: JSON.stringify(body),
       })
       setProductForm(emptyProduct())
+      setNotice('Товар сохранён')
       setPreview('')
       setFileKey((value) => value + 1)
       await load()
     } catch (err) {
       setProductForm((form) => ({ ...form, error: err instanceof Error ? err.message : 'Ошибка запроса' }))
-    }
+    } finally { setSaving(false) }
   }
 
   return (
     <main id="koruna-admin" className="admin">
       <section id="login" className="panel login" hidden={authed}>
-        <p className="eyebrow">ЦСБ</p>
-        <h1>Вход</h1>
+        <Brand />
+        <p className="eyebrow">Управление базой</p>
+        <h1>Вход в панель</h1>
+        <p className="lead">Каталог, заказы и склад — в одном месте.</p>
         <form id="login-form" onSubmit={onLogin}>
           <label>
             Почта
@@ -284,16 +300,20 @@ export default function AdminPage() {
             Пароль
             <input type="password" name="password" autoComplete="current-password" required maxLength={200} />
           </label>
-          <button type="submit">Войти</button>
+          <button type="submit" disabled={saving}>{saving ? 'Входим…' : 'Войти в панель'}</button>
           <p id="login-error" className="error" hidden={!loginError}>{loginError}</p>
         </form>
+        <p className="login-help">{mode === 'Supabase' ? 'Вход через Supabase Auth. Пользователь должен быть назначен администратором в admin_users. Локальная учётная запись здесь не действует.' : 'Локальный режим. Создать или восстановить администратора можно в терминале сервера: npm run admin:create. Универсального пароля нет.'}</p>
+        <a className="back-link" href="/">← Вернуться на сайт</a>
       </section>
 
       <section id="app" className="app" hidden={!authed}>
+        <aside className="admin-sidebar"><Brand /><p className="eyebrow">Панель управления</p><nav aria-label="Разделы панели">{Object.entries(tabs).map(([key, label]) => <button key={key} type="button" className={tab === key ? 'active' : ''} aria-current={tab === key ? 'page' : undefined} onClick={() => { setTab(key); setNotice(''); setGlobalError('') }}>{label}<span>{key === 'products' ? products.length : key === 'categories' ? categories.length : key === 'orders' ? orders.filter(o => o.status === 'new').length : ''}</span></button>)}</nav><a href="/">← Открыть сайт</a><small>Центральная<br />Строительная База</small></aside>
+        <div className="admin-content">
         <header className="top">
           <div>
-            <p className="eyebrow">Админка</p>
-            <h1>Каталог</h1>
+            <p className="eyebrow">Центральная Строительная База</p>
+            <h1>{tabs[tab]}</h1>
           </div>
           <div className="top-actions">
             <span id="mode" className="mode">{mode}</span>
@@ -302,9 +322,13 @@ export default function AdminPage() {
           </div>
         </header>
 
-        <div className="layout">
-          <section className="panel">
-            <h2>Раздел</h2>
+        <div className="stats"><div><span>Товары</span><strong>{products.length}</strong><small>В каталоге базы</small></div><div><span>Категории</span><strong>{categories.length}</strong><small>Направления поставок</small></div><div><span>Новые заказы</span><strong>{orders.filter(o => o.status === 'new').length}</strong><small>Ожидают обработки</small></div><div><span>Нет на складе</span><strong>{products.filter(p => p.stock_quantity === 0).length}</strong><small>Требуется пополнение</small></div></div>
+        {notice && <p className="success" role="status">{notice}</p>}
+        {globalError && <p className="error" role="alert">{globalError}</p>}
+        {sectionErrors[tab] && <p className="error" role="alert">{sectionErrors[tab]}. Проверьте подключение и применение миграций Supabase.</p>}
+        <div className="layout" hidden={!['categories', 'products'].includes(tab)}>
+          <section className="panel editor-panel" hidden={tab !== 'categories'}>
+            <h2>{categoryForm.id ? 'Редактирование категории' : 'Новая категория'}</h2>
             <form id="category-form" onSubmit={onCategory}>
               <input type="hidden" name="id" value={categoryForm.id} readOnly />
               <label>
@@ -377,7 +401,7 @@ export default function AdminPage() {
                 {' '}Показывать на сайте
               </label>
               <div className="row">
-                <button type="submit">Сохранить раздел</button>
+                <button type="submit" disabled={saving}>{saving ? 'Сохраняем…' : 'Сохранить категорию'}</button>
                 <button type="button" id="category-reset" className="ghost" onClick={() => setCategoryForm(emptyCategory())}>Новый</button>
               </div>
               <p className="error" hidden={!categoryForm.error}>{categoryForm.error}</p>
@@ -392,8 +416,8 @@ export default function AdminPage() {
                     className="ghost"
                     onClick={async () => {
                       if (!confirm(`Удалить раздел «${category.name}»?`)) return
-                      await api(`/api/admin/categories/${category.id}`, { method: 'DELETE' })
-                      await load()
+                      try { await api(`/api/admin/categories/${category.id}`, { method: 'DELETE' }); await load(); setNotice('Запись удалена') }
+                      catch (err) { setGlobalError(err instanceof Error ? err.message : 'Ошибка удаления') }
                     }}
                   >
                     Удалить
@@ -403,8 +427,8 @@ export default function AdminPage() {
             </ul>
           </section>
 
-          <section className="panel">
-            <h2>Товар</h2>
+          <section className="panel editor-panel" hidden={tab !== 'products'}>
+            <h2>{productForm.id ? 'Редактирование товара' : 'Новый товар'}</h2>
             <form id="product-form" onSubmit={onProduct}>
               <input type="hidden" name="id" value={productForm.id} readOnly />
               <label>
@@ -516,7 +540,7 @@ export default function AdminPage() {
                 {' '}Опубликовать
               </label>
               <div className="row">
-                <button type="submit">Сохранить товар</button>
+                <button type="submit" disabled={saving}>{saving ? 'Сохраняем…' : 'Сохранить товар'}</button>
                 <button
                   type="button"
                   id="product-reset"
@@ -532,28 +556,30 @@ export default function AdminPage() {
               </div>
               <p className="error" hidden={!productForm.error}>{productForm.error}</p>
             </form>
-            <ul id="products" className="list">
-              {products.map((product) => (
+            <div className="catalog-list"><div className="toolbar"><input aria-label="Поиск товаров" placeholder="Поиск по названию / артикулу" value={query} onChange={e => setQuery(e.target.value)} /><select aria-label="Фильтр категории" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}><option value="">Все категории</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><ul id="products" className="list">
+              {products.filter(p => (!categoryFilter || p.category_id === categoryFilter) && `${p.name} ${p.sku || ''}`.toLowerCase().includes(query.toLowerCase())).map((product) => (
                 <li key={product.id}>
-                  <span>{`${product.name}${product.is_active ? '' : ' · скрыт'}`}</span>
+                  <div className="product-thumb">{product.image_url && <img src={product.image_url} alt="" />}</div><span className="product-info"><strong>{product.name}</strong><small>{categories.find(c => c.id === product.category_id)?.name || 'Без категории'} · {product.sku || 'Без артикула'}</small><b>{formatPrice(product.price)} / {product.unit}</b><em className="badge">{product.is_active ? 'Опубликован' : 'Скрыт'} · {product.stock_quantity == null ? (product.in_stock ? 'В наличии' : 'Под заказ') : `${product.stock_quantity} ${product.unit} на складе`}</em></span>
                   <button type="button" onClick={() => fillProduct(product)}>Изменить</button>
                   <button
                     type="button"
                     className="ghost"
                     onClick={async () => {
                       if (!confirm(`Удалить товар «${product.name}»?`)) return
-                      await api(`/api/admin/products/${product.id}`, { method: 'DELETE' })
-                      await load()
+                      try { await api(`/api/admin/products/${product.id}`, { method: 'DELETE' }); await load(); setNotice('Запись удалена') }
+                      catch (err) { setGlobalError(err instanceof Error ? err.message : 'Ошибка удаления') }
                     }}
                   >
                     Удалить
                   </button>
                 </li>
               ))}
-            </ul>
+            </ul></div>
           </section>
         </div>
-        <div className="layout stack">
+        {tab === 'orders' && <Orders orders={orders} reload={load} />}
+        {tab === 'stock' && <Warehouse products={products} movements={movements} reload={load} />}
+        <div className="layout stack" hidden={tab !== 'staff'}>
           <section className="panel">
             <h2>Новый администратор</h2>
             <form
@@ -601,16 +627,8 @@ export default function AdminPage() {
               ))}
             </ul>
           </section>
-          <section className="panel">
-            <h2>Заказы</h2>
-            <ul className="list">
-              {orders.map((order) => (
-                <li key={order.id}>
-                  <span>{order.customer_name} · {order.phone} · {order.total ?? 'по запросу'} · {new Date(order.created_at).toLocaleString('ru-RU')}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+
+        </div>
         </div>
       </section>
     </main>

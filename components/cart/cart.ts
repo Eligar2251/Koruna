@@ -6,6 +6,8 @@ export type CartItem = {
   unit: string | null
   image: string | null
   qty: number
+  available?: boolean
+  stock?: number | null
 }
 
 const KEY = 'csb-cart'
@@ -43,10 +45,11 @@ export function addItem(product: {
   price?: number | null
   unit?: string | null
   image_url?: string | null
-}) {
+}, qty = 1) {
+  if (!Number.isInteger(qty) || qty < 1 || qty > 999) throw new Error('Укажите количество от 1 до 999')
   const items = readCart()
   const found = items.find((item) => item.id === product.id)
-  if (found) found.qty = Math.min(999, found.qty + 1)
+  if (found) found.qty = Math.min(999, found.qty + qty)
   else {
     items.push({
       id: product.id,
@@ -55,7 +58,7 @@ export function addItem(product: {
       price: product.price ?? null,
       unit: product.unit ?? null,
       image: product.image_url ?? null,
-      qty: 1,
+      qty: Math.min(999, Math.max(1, Math.floor(qty))),
     })
   }
   writeCart(items)

@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <>
+    <div id="allrecords" className="t-records">
       <Header />
       <CartView />
       <Footer />
-    </>
+    </div>
   )
 }

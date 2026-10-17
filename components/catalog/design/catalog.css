@@ -147,3 +147,28 @@
     font-size: 26px;
   }
 }
+
+/* Fixed product slots: every title, price and quantity stays on the same baseline. */
+.koruna-catalog *, .koruna-catalog *::before, .koruna-catalog *::after { box-sizing: border-box; }
+.koruna-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); grid-auto-rows: 1fr; }
+.koruna-card { height: auto; border-radius: 8px; }
+.koruna-card__media { height: 210px; aspect-ratio: auto; overflow: hidden; }
+.koruna-card__media img { object-fit: contain; }
+.koruna-card__body h3 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 24px; height: 24px; }
+.koruna-card--product .koruna-card__body { display: grid; grid-template-rows: 24px 26px 22px 26px 42px 18px; gap: 8px; }
+.koruna-card__price { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 17px; line-height: 26px; font-variant-numeric: tabular-nums; }
+.koruna-card__meta { white-space: nowrap; line-height: 22px; }
+.koruna-card__more { margin: 0; align-self: center; justify-self: start; font-size: 14px; }
+.koruna-card__actions { display: flex; gap: 10px; align-items: center; min-width: 0; flex-wrap: nowrap; }
+.koruna-card__add { margin: 0; flex: 1; white-space: nowrap; min-width: 0; padding: 11px 8px; border-radius: 5px; height: 42px; }
+.koruna-card__add:disabled { background: #e8efec; color: #718078; cursor: not-allowed; }
+.koruna-qty { display: flex; flex: 0 0 102px; align-items: center; height: 42px; border: 1px solid #dce4df; border-radius: 5px; overflow: hidden; }
+.koruna-qty button { width: 30px; flex: 0 0 30px; padding: 0; height: 100%; border: 0; background: #f4f7f5; cursor: pointer; color: #1c6b5a; font-size: 19px; }
+.koruna-qty input { width: 40px; min-width: 0; border: 0; padding: 0; text-align: center; font: inherit; font-size: 14px; appearance: textfield; background: #fff; color: #222; }
+.koruna-qty input::-webkit-inner-spin-button { appearance: none; }
+.koruna-card__feedback { font-size: 11px; line-height: 18px; white-space: nowrap; color: #1c6b5a; overflow: hidden; text-overflow: ellipsis; }
+.koruna-description { max-width: min(560px, calc(100vw - 40px)); border: 1px solid #dce4df; border-radius: 10px; padding: 28px; color: #333; font-family: Arial, sans-serif; }
+.koruna-description::backdrop { background: #112e25aa; }
+.koruna-description h2 { margin: 0 0 18px; font-size: 22px; }
+.koruna-description p { white-space: pre-wrap; line-height: 1.6; }
+.koruna-description button { background: #1c6b5a; color: white; border: 0; padding: 12px 24px; border-radius: 5px; cursor: pointer; }

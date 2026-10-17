@@ -604,6 +604,9 @@ def write_chrome(home_html: str) -> None:
         if 'CartCount' in found:
             imports.append("import { CartCount } from '../cart/CartCount'")
         body = emit(node, 2)
+        if tag == 'Header':
+            imports.append("import { SiteStyles } from './SiteStyles'")
+            body = '    <>\n      <SiteStyles />\n' + body + '\n    </>'
         (chrome / f'{tag}.jsx').write_text(
             '\n'.join(imports) + f'\n\nexport function {tag}() {{\n  return (\n{body}\n  )\n}}\n',
             encoding='utf-8',

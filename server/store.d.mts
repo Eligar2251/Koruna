@@ -1,5 +1,7 @@
 export interface CatalogStore {
   mode: 'file' | 'supabase'
+  stockMovements(): Promise<unknown[]>
+  adjustStock(id: string, input: Record<string, unknown>): Promise<unknown>
   catalog(): Promise<{ categories: unknown[]; products: unknown[] }>
   adminList(): Promise<{ categories: unknown[]; products: unknown[] }>
   saveCategory(input: Record<string, unknown>, id?: string): Promise<unknown>

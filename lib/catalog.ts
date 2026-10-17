@@ -14,6 +14,7 @@ export type CatalogProduct = {
   price: number | null
   unit: string | null
   image_url: string | null
+  stock_quantity?: number | null
   in_stock?: boolean
   description?: string | null
 }
