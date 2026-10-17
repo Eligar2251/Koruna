@@ -1,3 +1,5 @@
+import { readSupabase } from './supabase-read.mjs'
+import { supabaseDataError } from './supabase-errors.mjs'
 import { buildBulkRows } from './bulk.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -256,16 +258,11 @@ export function createFileStore(file) {
 }
 
 export function createSupabaseStore(client) {
-  function raise(error) {
+  function raise(error, operation = 'write', status = 0) {
     if (!error) return
-    if (/relation .* does not exist|schema cache/i.test(error.message)) {
-      throw new Error('В Supabase нет таблиц каталога. Примените миграции из supabase/migrations.')
-    }
     if (/duplicate key|unique/i.test(error.message)) throw new Error('Такой адрес уже есть')
-    if (/row-level security|permission denied|42501/i.test(error.message)) throw new Error('Нет доступа')
     if (/недостаточно|остаток|товар не найден|некоррект/i.test(error.message)) throw new Error(error.message)
-    if (/jwt|invalid claim|PGRST301/i.test(error.message)) throw new Error('Нужен вход')
-    throw new Error('Не удалось сохранить данные')
+    throw supabaseDataError(error, 'catalog', status, operation)
   }
 
   return {
@@ -290,18 +287,18 @@ export function createSupabaseStore(client) {
     },
     async catalog() {
       const [categories, products] = await Promise.all([
-        client.from('categories').select('*').eq('is_active', true).order('sort_order').abortSignal(AbortSignal.timeout(5000)),
-        client.from('products').select('*').eq('is_active', true).order('sort_order').abortSignal(AbortSignal.timeout(5000)),
+        readSupabase(signal => client.from('categories').select('*').eq('is_active', true).order('sort_order').abortSignal(signal)),
+        readSupabase(signal => client.from('products').select('*').eq('is_active', true).order('sort_order').abortSignal(signal)),
       ])
-      raise(categories.error)
-      raise(products.error)
+      raise(categories.error, 'read', categories.status)
+      raise(products.error, 'read', products.status)
       return publicCatalog(categories.data || [], products.data || [])
     },
     async adminList() {
       const categories = await client.from('categories').select('*').order('sort_order')
-      raise(categories.error)
+      raise(categories.error, 'read', categories.status)
       const products = await client.from('products').select('*').order('sort_order')
-      raise(products.error)
+      raise(products.error, 'read', products.status)
       return { categories: categories.data || [], products: products.data || [] }
     },
     async saveCategory(body, id) {

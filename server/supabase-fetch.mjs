@@ -7,6 +7,6 @@ export function createSupabaseFetch(
     const signals = [AbortSignal.timeout(timeoutMs)];
     if (init.signal) signals.push(init.signal);
     if (input instanceof Request) signals.push(input.signal);
-    return fetcher(input, { ...init, signal: AbortSignal.any(signals) });
+    return fetcher(input, { ...init, cache: "no-store", signal: AbortSignal.any(signals) });
   };
 }

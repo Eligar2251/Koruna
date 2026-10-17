@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { SupabaseDataError } from "../server/supabase-errors.mjs";
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, {
@@ -12,6 +13,8 @@ export function json(data: unknown, status = 200) {
 }
 
 export function fail(err: unknown) {
+  if (err instanceof SupabaseDataError)
+    return json({ error: err.message, code: err.code }, err.status);
   const message = err instanceof Error ? err.message : "Ошибка";
   const status = /слишком большой запрос/i.test(message)
     ? 413

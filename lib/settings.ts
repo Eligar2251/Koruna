@@ -1,4 +1,5 @@
 import path from "node:path";
+import { readSettingsConfig } from "../server/supabase-read.mjs";
 import { mergeSiteSettings } from "../server/intake-config.mjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { defaultSettings, type SiteSettings } from "./site-config";
@@ -13,17 +14,7 @@ export async function readSettings(
   client: SupabaseClient | null = supabaseClient(),
 ): Promise<SiteSettings> {
   if (!client) return local().read();
-  const result = await client
-    .from("site_settings")
-    .select("config")
-    .eq("id", "main")
-    .abortSignal(AbortSignal.timeout(4000))
-    .maybeSingle();
-  if (result.error)
-    throw new Error(
-      "Настройки недоступны. Примените миграцию 20261017160000_site_operations.sql.",
-    );
-  const data = result.data?.config || {};
+  const data = await readSettingsConfig(client);
   return mergeSiteSettings(data, defaultSettings);
 }
 export async function saveSettings(
