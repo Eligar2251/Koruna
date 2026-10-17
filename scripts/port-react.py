@@ -408,6 +408,7 @@ def emit(node, indent: int) -> str:
     if node.get('component'):
         return f'{pad}<{node["component"]} />'
     tag = node['tag']
+    input_type = node['attrs'].get('type', '').lower()
     attrs = []
     for key, value in node['attrs'].items():
         name = react_name(key)
@@ -415,6 +416,10 @@ def emit(node, indent: int) -> str:
             continue
         if key in ('src', 'href', 'poster') and value.startswith(('http://', 'https://', '//')):
             continue
+        if name == 'value' and (tag in ('textarea', 'select') or (tag == 'input' and input_type not in ('checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'image'))):
+            name = 'defaultValue'
+        if name == 'checked' and tag == 'input':
+            name = 'defaultChecked'
         attrs.append(f'{name}={{{json.dumps(value)}}}')
     if 'style' in node['attrs']:
         style = style_jsx(node['attrs']['style'])

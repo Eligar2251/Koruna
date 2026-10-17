@@ -876,11 +876,11 @@ export function MontajnayaHimiyaPage() {
                   </div>
                   <div className={"t706__orderform "}>
                     <form id={"form2050684411"} name={"form2050684411"} role={"form"} action={""} method={"POST"} data-formactiontype={"2"} data-inputbox={".t-input-group"} className={"t-form js-form-proccess t-form_inputs-total_7 "} data-formsended-callback={"t706_onSuccessCallback"}>
-                      <input type={"hidden"} name={"formservices[]"} value={"4881c76c0410e2578e9e8adad8c6e80e"} className={"js-formaction-services"} />
-                      <input type={"hidden"} name={"formservices[]"} value={"964371d55af93bbc260c4b983b27b547"} className={"js-formaction-services"} />
-                      <input type={"hidden"} name={"formservices[]"} value={"bb307d360e27c5188b455e4b9faf8b7b"} className={"js-formaction-services"} />
-                      <input type={"hidden"} name={"formservices[]"} value={"a2685860ffc53827f2fd720a8cd6d3c9"} className={"js-formaction-services"} />
-                      <input type={"hidden"} name={"tildaspec-formname"} tabIndex={"-1"} value={"Cart"} />
+                      <input type={"hidden"} name={"formservices[]"} defaultValue={"4881c76c0410e2578e9e8adad8c6e80e"} className={"js-formaction-services"} />
+                      <input type={"hidden"} name={"formservices[]"} defaultValue={"964371d55af93bbc260c4b983b27b547"} className={"js-formaction-services"} />
+                      <input type={"hidden"} name={"formservices[]"} defaultValue={"bb307d360e27c5188b455e4b9faf8b7b"} className={"js-formaction-services"} />
+                      <input type={"hidden"} name={"formservices[]"} defaultValue={"a2685860ffc53827f2fd720a8cd6d3c9"} className={"js-formaction-services"} />
+                      <input type={"hidden"} name={"tildaspec-formname"} tabIndex={"-1"} defaultValue={"Cart"} />
                       <div className={"js-successbox t-form__successbox t-text t-text_md"} aria-live={"polite"} data-success-message={"<br />\u0421\u043f\u0430\u0441\u0438\u0431\u043e \u0437\u0430 \u0437\u0430\u043a\u0430\u0437! \u041c\u044b \u0441\u0432\u044f\u0436\u0435\u043c\u0441\u044f \u0441 \u0432\u0430\u043c\u0438 \u0432 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0432\u0440\u0435\u043c\u044f."} style={{display: "none"}} />
                       <div className={"t-form__inputsbox\nt-form__inputsbox_inrow "}>
                         <div className={"t-input-group t-input-group_nm "} data-input-lid={"7411158466360"}>
@@ -888,7 +888,7 @@ export function MontajnayaHimiyaPage() {
                             {"\u0418\u043c\u044f"}
                           </label>
                           <div className={"t-input-block "}>
-                            <input type={"text"} autoComplete={"name"} name={"Name"} id={"input_7411158466360"} className={"t-input js-tilda-rule"} value={""} aria-required={"true"} aria-describedby={"error_7411158466360"} style={{color: "#000000", border: "1px solid #000000"}} />
+                            <input type={"text"} autoComplete={"name"} name={"Name"} id={"input_7411158466360"} className={"t-input js-tilda-rule"} defaultValue={""} aria-required={"true"} aria-describedby={"error_7411158466360"} style={{color: "#000000", border: "1px solid #000000"}} />
                           </div>
                           <div className={"t-input-error"} aria-live={"polite"} id={"error_7411158466360"} />
                         </div>
@@ -897,13 +897,13 @@ export function MontajnayaHimiyaPage() {
                             {"Email"}
                           </label>
                           <div className={"t-input-block "}>
-                            <input type={"email"} autoComplete={"email"} name={"Email"} id={"input_7511158466361"} className={"t-input js-tilda-rule"} value={""} aria-required={"true"} aria-describedby={"error_7511158466361"} style={{color: "#000000", border: "1px solid #000000"}} />
+                            <input type={"email"} autoComplete={"email"} name={"Email"} id={"input_7511158466361"} className={"t-input js-tilda-rule"} defaultValue={""} aria-required={"true"} aria-describedby={"error_7511158466361"} style={{color: "#000000", border: "1px solid #000000"}} />
                           </div>
                           <div className={"t-input-error"} aria-live={"polite"} id={"error_7511158466361"} />
                         </div>
                         <div className={"t-input-group t-input-group_ph "} data-input-lid={"7511158466362"}>
                           <div className={"t-input-block "}>
-                            <input type={"tel"} autoComplete={"tel"} name={"Phone"} id={"input_7511158466362"} data-phonemask-init={"no"} data-phonemask-id={"2050684411"} data-phonemask-lid={"7511158466362"} data-phonemask-maskcountry={"RU"} className={"t-input js-phonemask-input js-tilda-rule"} value={""} placeholder={"+7(000)000-0000"} aria-required={"true"} aria-describedby={"error_7511158466362"} style={{color: "#000000", border: "1px solid #000000"}} />
+                            <input type={"tel"} autoComplete={"tel"} name={"Phone"} id={"input_7511158466362"} data-phonemask-init={"no"} data-phonemask-id={"2050684411"} data-phonemask-lid={"7511158466362"} data-phonemask-maskcountry={"RU"} className={"t-input js-phonemask-input js-tilda-rule"} defaultValue={""} placeholder={"+7(000)000-0000"} aria-required={"true"} aria-describedby={"error_7511158466362"} style={{color: "#000000", border: "1px solid #000000"}} />
                           </div>
                           <div className={"t-input-error"} aria-live={"polite"} id={"error_7511158466362"} />
                         </div>
@@ -943,7 +943,7 @@ export function MontajnayaHimiyaPage() {
                             {"\u0423\u0434\u043e\u0431\u043d\u044b\u0439 \u0441\u043f\u043e\u0441\u043e\u0431 \u0441\u0432\u044f\u0437\u0438"}
                           </div>
                           <div className={"t-input-block "}>
-                            <input type={"hidden"} className={"t-checkboxes__hiddeninput js-tilda-rule"} name={"\u0423\u0434\u043e\u0431\u043d\u044b\u0439 \u0441\u043f\u043e\u0441\u043e\u0431 \u0441\u0432\u044f\u0437\u0438"} tabIndex={"-1"} value={""} aria-required={"true"} />
+                            <input type={"hidden"} className={"t-checkboxes__hiddeninput js-tilda-rule"} name={"\u0423\u0434\u043e\u0431\u043d\u044b\u0439 \u0441\u043f\u043e\u0441\u043e\u0431 \u0441\u0432\u044f\u0437\u0438"} tabIndex={"-1"} defaultValue={""} aria-required={"true"} />
                             <ul className={"t-checkboxes__wrapper"}>
                               <li className={"t-checkboxes__item"}>
                                 <div className={"t-checkbox__control t-text t-text_xs"}>
