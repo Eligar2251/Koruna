@@ -2,16 +2,24 @@ import { randomBytes } from "node:crypto";
 import { readFile, writeFile, chmod } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
-import { parse } from "dotenv";
+import { parseEnv } from "node:util";
 import { adminConfigurationErrors } from "../server/admin-gate.mjs";
 
+export function parseAdminEnv(text) {
+  // UTF-8 BOM is common in Windows-created .env files; Node's parser keeps it in the first key.
+  return parseEnv(text.replace(/^\uFEFF/, ""));
+}
+const parse = parseAdminEnv;
 const KEYS = ["ADMIN_PATH", "JWT_SECRET"];
 const HELP = `Настройка закрытой панели (значения секретов не выводятся).
   npm run admin:setup
-  npm run admin:setup -- --path /your-new-private-panel --rotate-secret
+  npm run admin:rotate
+  node scripts/setup-admin-entry.mjs --rotate-path --rotate-secret
+  node scripts/setup-admin-entry.mjs --path /your-new-private-panel --rotate-secret
   npm run admin:setup -- ADMIN_PATH=/your-new-private-panel
   npm run admin:check
 
+Для Windows/PowerShell используйте admin:rotate или прямой запуск node: npm может поглотить флаги.
 KEY=VALUE после команды и переменные окружения перед npm поддерживаются.
 Не передавайте JWT_SECRET аргументом: он останется в истории shell и выводе npm.
 --rotate-path         сгенерировать новый случайный путь
@@ -59,7 +67,7 @@ export function parseOptions(args) {
       const match = /^(ADMIN_PATH|JWT_SECRET)=(.*)$/.exec(arg);
       if (!match)
         throw new Error(
-          "Неизвестный аргумент. Используйте npm run admin:setup -- --help; файлы не изменены.",
+          "Неизвестный аргумент. Используйте node scripts/setup-admin-entry.mjs --help; файлы не изменены.",
         );
       if (result.values[match[1]] !== undefined)
         throw new Error("Значение ключа указано дважды; файлы не изменены.");
@@ -89,7 +97,7 @@ export function parseOptions(args) {
 
 async function readOptional(file) {
   try {
-    return await readFile(file, "utf8");
+    return (await readFile(file, "utf8")).replace(/^\uFEFF/, "");
   } catch (error) {
     if (error.code === "ENOENT") return "";
     throw error;
@@ -140,6 +148,30 @@ export async function setupAdminEntry({
 }) {
   const options = parseOptions(args);
   if (options.help) return [HELP];
+  if (!options.check) {
+    for (const flag of [
+      "rotate-path",
+      "rotate-secret",
+      "allow-local-password-reset",
+      "path",
+      "mode",
+    ]) {
+      const configured =
+        environment["npm_config_" + flag.replaceAll("-", "_")] ??
+        environment["npm_config_" + flag];
+      if (
+        configured !== undefined &&
+        configured !== "false" &&
+        configured !== "0" &&
+        !args.some(
+          (arg) => arg === "--" + flag || arg.startsWith("--" + flag + "="),
+        )
+      )
+        throw new Error(
+          "npm поглотил флаги и не передал их скрипту. Файлы не изменены. Используйте npm run admin:rotate или node scripts/setup-admin-entry.mjs --rotate-path --rotate-secret.",
+        );
+    }
+  }
   const inspected = await inspectAdminEnvironment(
     root,
     environment,

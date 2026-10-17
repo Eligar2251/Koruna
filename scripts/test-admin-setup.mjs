@@ -1,4 +1,5 @@
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 import {
   mkdtemp,
@@ -7,11 +8,12 @@ import {
   rm,
   mkdir,
   stat,
+  cp,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parse } from "dotenv";
 import {
+  parseAdminEnv as parse,
   setupAdminEntry,
   inspectAdminEnvironment,
 } from "./setup-admin-entry.mjs";
@@ -40,7 +42,8 @@ test("setup принимает KEY=VALUE после npm и сохраняет п
     assert.equal(adminEntry(values), entry);
     assert.ok(!messages.join("\n").includes(secret));
     assert.ok(!messages.join("\n").includes(entry));
-    assert.equal((await stat(path.join(root, ".env"))).mode & 0o777, 0o600);
+    if (process.platform !== "win32")
+      assert.equal((await stat(path.join(root, ".env"))).mode & 0o777, 0o600);
   }));
 test("короткий JWT и ошибочные аргументы дают ошибку до записи, без вывода переданного секрета", () =>
   temporary(async (root) => {
@@ -217,3 +220,90 @@ test("адрес публичной страницы и длины ниже ми
       entry,
     );
   }));
+
+test("Windows env: BOM, CRLF, export, кавычки и комментарии разбираются без dotenv", () => {
+  const values = parse(
+    `\uFEFFexport ADMIN_PATH="${entry}"\r\nJWT_SECRET='${secret}' # comment\r\n`,
+  );
+  assert.equal(values.ADMIN_PATH, entry);
+  assert.equal(values.JWT_SECRET, secret);
+});
+
+test("поглощённые npm флаги не приводят к молчаливому setup без ротации", () =>
+  temporary(async (root) => {
+    await assert.rejects(
+      () =>
+        setupAdminEntry({
+          root,
+          environment: { npm_config_rotate_path: "true" },
+          args: [],
+        }),
+      /npm поглотил флаги/,
+    );
+    await assert.rejects(
+      () => readFile(path.join(root, ".env")),
+      (error) => error.code === "ENOENT",
+    );
+    await setupAdminEntry({
+      root,
+      environment: { npm_config_rotate_path: "true" },
+      args: ["--rotate-path", "--rotate-secret"],
+    });
+    assert.equal(
+      adminEntry(
+        parse(await readFile(path.join(root, ".env"), "utf8")),
+      )?.startsWith("/"),
+      true,
+    );
+  }));
+
+test("реальный CLI работает в отдельной папке без node_modules и npm; проверка и ротация не раскрывают секреты", () =>
+  temporary(async (root) => {
+    await mkdir(path.join(root, "scripts"));
+    await mkdir(path.join(root, "server"));
+    await cp(
+      new URL("./setup-admin-entry.mjs", import.meta.url),
+      path.join(root, "scripts", "setup-admin-entry.mjs"),
+    );
+    await cp(
+      new URL("../server/admin-gate.mjs", import.meta.url),
+      path.join(root, "server", "admin-gate.mjs"),
+    );
+    const environment = { ...process.env };
+    for (const key of Object.keys(environment))
+      if (
+        ["ADMIN_PATH", "JWT_SECRET"].includes(key) ||
+        key.toLowerCase().startsWith("npm_config_")
+      )
+        delete environment[key];
+    const run = (args) =>
+      spawnSync(
+        process.execPath,
+        [path.join(root, "scripts", "setup-admin-entry.mjs"), ...args],
+        { cwd: root, env: environment, encoding: "utf8" },
+      );
+    const first = run(["--rotate-path", "--rotate-secret"]);
+    assert.equal(first.status, 0, first.stderr);
+    const before = parse(await readFile(path.join(root, ".env"), "utf8"));
+    assert.ok(adminEntry(before));
+    assert.ok(!first.stdout.includes(before.JWT_SECRET));
+    const checked = run(["--check"]);
+    assert.equal(checked.status, 0, checked.stderr);
+    assert.ok(!checked.stdout.includes(before.JWT_SECRET));
+    const second = run(["--rotate-path", "--rotate-secret"]);
+    assert.equal(second.status, 0, second.stderr);
+    const after = parse(await readFile(path.join(root, ".env"), "utf8"));
+    assert.notEqual(after.JWT_SECRET, before.JWT_SECRET);
+    assert.notEqual(after.ADMIN_PATH, before.ADMIN_PATH);
+  }));
+
+test("npm alias содержит флаги в самом скрипте и не требует их проброса из PowerShell", async () => {
+  const pkg = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8"),
+  );
+  assert.equal(
+    pkg.scripts["admin:rotate"],
+    "node scripts/setup-admin-entry.mjs --rotate-path --rotate-secret",
+  );
+  assert.equal(pkg.dependencies.dotenv, undefined);
+});
