@@ -1,13 +1,25 @@
 export const GATE_COOKIE = "csb_admin_gate";
-export function adminEntry(env = process.env) {
+export function adminConfigurationErrors(env = process.env) {
+  const errors = [];
   const entry = env.ADMIN_PATH || "";
   if (
-    !/^\/[A-Za-z0-9_-]{32,128}$/.test(entry) ||
-    (env.JWT_SECRET || "").length < 32
+    !/^\/[A-Za-z0-9_-]{16,128}$/.test(entry) ||
+    entry === "/oplata-i-dostavka"
   )
-    return null;
-  return entry;
+    errors.push(
+      "ADMIN_PATH: укажите один путь / и 16–128 латинских букв, цифр, _ или -. Не полный URL и не адрес публичной страницы.",
+    );
+  const secret = env.JWT_SECRET || "";
+  if (secret.length < 32 || secret.length > 4096 || /[\r\n]/.test(secret))
+    errors.push(
+      "JWT_SECRET: требуется от 32 до 4096 символов без перевода строки. Для нового случайного ключа используйте --rotate-secret.",
+    );
+  return errors;
 }
+export function adminEntry(env = process.env) {
+  return adminConfigurationErrors(env).length ? null : env.ADMIN_PATH;
+}
+
 function encode(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   return btoa(String.fromCharCode(...bytes))
