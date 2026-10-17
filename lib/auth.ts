@@ -1,3 +1,4 @@
+import { adminEntry, verifyGateToken, GATE_COOKIE } from '../server/admin-gate.mjs'
 import { readSupabaseConfig } from '../server/supabase-config.mjs'
 import path from 'node:path'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -20,6 +21,8 @@ const REFRESH = 'csb_refresh'
 const attempts = new Map<string, { count: number; reset: number }>()
 
 export type AdminContext = {
+  role: 'owner' | 'admin'
+  userId: string
   store: CatalogStore
   client: SupabaseClient | null
   access: string
@@ -48,19 +51,25 @@ export function isSecureRequest(req: Request) {
 }
 
 export function hasSiteHeader(req: Request) {
-  return req.headers.get('x-csb-request') === '1'
+  if (req.headers.get('x-csb-request') !== '1' || req.headers.get('sec-fetch-site') === 'cross-site') return false
+  const origin = req.headers.get('origin')
+  if (!origin) return true
+  try { return new URL(origin).host === (req.headers.get('host') || new URL(req.url).host) } catch { return false }
+}
+export async function hasAdminGate(req: Request) {
+  return verifyGateToken(readCookie(req, GATE_COOKIE), process.env.JWT_SECRET, adminEntry())
 }
 
-export function loginAllowed(req: Request) {
+export function loginAllowed(req: Request, email?: string) {
   const ip = (req.headers.get('x-forwarded-for') || 'local').split(',')[0].trim() || 'local'
   const now = Date.now()
-  const current = attempts.get(ip)
-  if (!current || current.reset < now) {
-    attempts.set(ip, { count: 1, reset: now + 15 * 60 * 1000 })
-    return true
-  }
-  current.count += 1
-  return current.count <= 8
+  if(attempts.size>20000) attempts.clear()
+  const keys=[`ip:${ip}`,...(email ? [`email:${email}`] : [])]
+  return keys.map(key=>{
+    const current=attempts.get(key)
+    if(!current || current.reset<now) { attempts.set(key,{count:1,reset:now+15*60*1000}); return true }
+    current.count++; return current.count<=8
+  }).every(Boolean)
 }
 
 function cookie(name: string, value: string, maxAge: number, secure: boolean) {
@@ -105,6 +114,7 @@ export async function ensureLocalAdmin(book: AccountBook = accountBook()) {
 }
 
 export async function openAdmin(req: Request): Promise<{ session: AdminContext } | { response: NextResponse }> {
+  if (!await hasAdminGate(req)) return { response: json({ error: 'Не найдено' }, 404) }
   const remote = configuredSupabase()
   if (!remote) {
     const access = readCookie(req, ACCESS)
@@ -114,6 +124,8 @@ export async function openAdmin(req: Request): Promise<{ session: AdminContext }
     if (!account) return { response: json({ error: 'Нужен вход' }, 401) }
     return {
       session: {
+        role: account.role,
+        userId: account.id,
         store: await getStore(),
         client: null,
         access,
@@ -144,11 +156,13 @@ export async function openAdmin(req: Request): Promise<{ session: AdminContext }
 
   const userClient = supabaseClient(access)
   if (!userClient) return { response: json({ error: 'Нужен вход' }, 401) }
-  const admin = await userClient.from('admin_users').select('user_id').eq('user_id', user.id).maybeSingle()
+  const admin = await userClient.from('admin_users').select('user_id,role').eq('user_id', user.id).maybeSingle()
   if (admin.error || !admin.data) return { response: json({ error: 'Нужен вход' }, 401) }
 
   return {
     session: {
+      role: admin.data.role === 'owner' ? 'owner' : 'admin',
+      userId: user.id,
       store: createSupabaseStore(userClient),
       client: userClient,
       access,

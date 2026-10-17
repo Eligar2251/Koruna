@@ -31,8 +31,7 @@ export function fail(err: unknown) {
   return json({ error: message }, status);
 }
 
-export async function readJson(req: Request) {
-  const limit = 8 * 1024 * 1024;
+export async function readJson(req: Request, limit = 8 * 1024 * 1024) {
   if (Number(req.headers.get("content-length")) > limit)
     throw new Error("Слишком большой запрос");
   const reader = req.body?.getReader();

@@ -1,3 +1,4 @@
+import { normalizePhone } from './phone.mjs'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -16,7 +17,7 @@ function text(value, max) {
 
 export function buildOrder(body, catalog) {
   const name = text(body.name, 120)
-  const phone = text(body.phone, 40)
+  const phone = normalizePhone(body.phone)
   const email = text(body.email, 200)
   const address = text(body.address, 300)
   const comment = text(body.comment, 1000)
@@ -96,6 +97,24 @@ export function createOrderBook(file) {
   }
 
   return {
+    claimEmail(id, hash) {
+      return update(data => {
+        const row=data.orders.find(order=>order.id===id)
+        if (!row) throw new Error('Заказ не найден')
+        if (row.email_status==='sent' || (row.email_status==='pending' && Date.parse(row.email_attempted_at)>Date.now()-120000)) throw new Error('Письмо уже отправлено или отправляется')
+        row.email_token_hash=hash; row.email_status='pending'; row.email_attempted_at=new Date().toISOString()
+        return row
+      })
+    },
+    finishEmail(id,hash,status) {
+      if (!['sent','failed','unconfigured'].includes(status)) throw new Error('Некорректное состояние')
+      return update(data=>{
+        const row=data.orders.find(order=>order.id===id && order.email_token_hash===hash && order.email_status==='pending')
+        if (!row) throw new Error('Нет доступа')
+        row.email_status=status;row.email_attempted_at=new Date().toISOString();delete row.email_token_hash
+        return status
+      })
+    },
     setStatus(id, status) {
       orderStatus(status)
       return update((data) => {

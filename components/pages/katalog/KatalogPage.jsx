@@ -1,3 +1,4 @@
+import { CalculationButton } from '../../site/CalculationButton'
 import { MaterialsCallout } from '../../site/MaterialsCallout'
 import { NavLink } from '../../chrome/NavLink'
 import { SiteBackgroundLink, SiteImage } from '../../site/SiteImage'
@@ -10,7 +11,6 @@ export function KatalogPage() {
     <>
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-grid-3.0.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/ws/project22824286/tilda-blocks-page149428996.min.901e219379.css" />
-      <link rel="stylesheet" href="/_fonts.googleapis.com/css2.bf76316f5c.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menusub-1.1.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menu-widgeticons-1.0.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menu-burger-1.0.min.css" />
@@ -275,26 +275,11 @@ export function KatalogPage() {
                 <div className={"t396__elem tn-elem tn-elem__23929844811773127657283000003"} data-elem-id={"1773127657283000003"} data-elem-type={"shape"}>
                   <div className={"tn-atom"} />
                 </div>
-                <div className={"t396__elem tn-elem tn-elem__23929844811773127887314000001"} data-elem-id={"1773127887314000001"} data-elem-type={"shape"}>
-                  <InquiryButton className={"koruna-nolink tn-atom js-click-zero-stat"} target={"_blank"} />
+                <div className={"t396__elem tn-elem tn-elem__23929844811773127887314000001"} data-elem-id={"1773127887314000001"} data-elem-type={"shape"}><CalculationButton />
                 </div>
-                <div className={"t396__elem tn-elem tn-elem__23929844811773127887314000002"} data-elem-id={"1773127887314000002"} data-elem-type={"shape"}>
-                  <InquiryButton className={"koruna-nolink tn-atom js-click-zero-stat"} target={"_blank"} />
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929844811773127887314000003"} data-elem-id={"1773127887314000003"} data-elem-type={"text"}>
-                  <div className={"tn-atom"}>
-                    <InquiryButton className={"koruna-nolink"} target={"_blank"} style={{color: "inherit"}}>
-                      {">"}
-                    </InquiryButton>
-                  </div>
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929844811773127887314000004"} data-elem-id={"1773127887314000004"} data-elem-type={"text"}>
-                  <div className={"tn-atom"}>
-                    <InquiryButton className={"koruna-nolink"} target={"_blank"} style={{color: "inherit"}}>
-                      <SiteText id="7b1b15a5e608" fallback={"\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0440\u0430\u0441\u0447\u0435\u0442"} />
-                    </InquiryButton>
-                  </div>
-                </div>
+
+
+
                 <div className={"t396__elem tn-elem tn-elem__23929844811773127211967000004"} data-elem-id={"1773127211967000004"} data-elem-type={"shape"}>
                   <div className={"tn-atom"} />
                 </div>

@@ -1,4 +1,5 @@
 'use client'
+import { PhoneInput } from '../../site/PhoneInput'
 import { ConsentCheckbox, useSite } from '../../site/SiteProvider'
 import { SiteImage } from '../../site/SiteImage'
 
@@ -82,7 +83,7 @@ export function CartView() {
       </section><aside className="csb-cart__checkout"><h2>Оформление заказа</h2><div className="csb-cart__summary"><span>Товары · {rows.reduce((sum, row) => sum + row.qty, 0)} ед.</span><strong>{formatPrice(total)}</strong></div>{unpriced && <p>Часть цен — по запросу. Итог уточнит менеджер.</p>}<p className="csb-cart__note">Доставка рассчитывается отдельно. Заказ не является онлайн-оплатой.</p>
         <form className="csb-cart__form" onSubmit={submit}>
           <label>Ваше имя<input name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Как к вам обращаться" /></label>
-          <label>Телефон<input name="phone" type="tel" required minLength={6} maxLength={40} autoComplete="tel" placeholder="+7 (___) ___-__-__" /></label>
+          <label>Телефон<PhoneInput required /></label>
           <label>Электронная почта<input name="email" type="email" maxLength={200} autoComplete="email" placeholder="Необязательно" /></label>
           <label>Адрес доставки<input name="address" maxLength={300} autoComplete="street-address" placeholder="Или укажите самовывоз" /></label>
           <label>Комментарий<textarea name="comment" rows={3} maxLength={1000} placeholder="Пожелания к заказу" /></label>

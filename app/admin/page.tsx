@@ -6,6 +6,7 @@ import { adminApi as api } from '../../components/admin/api'
 import { Orders, Warehouse, type Order, type Movement } from '../../components/admin/Operations'
 import { BulkProducts } from '../../components/admin/BulkProducts'
 import { SiteSettingsEditor } from '../../components/admin/SiteSettingsEditor'
+import { MailSettings } from '../../components/admin/MailSettings'
 import { LiveOrders } from '../../components/admin/LiveOrders'
 import { formatPrice } from '../../lib/format'
 
@@ -116,6 +117,7 @@ function fileToBase64(file: File) {
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
   const [mode, setMode] = useState('')
+  const [currentRole, setCurrentRole] = useState('admin')
   const [loginError, setLoginError] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -123,7 +125,7 @@ export default function AdminPage() {
   const [productForm, setProductForm] = useState<ProductForm>(emptyProduct)
   const [preview, setPreview] = useState('')
   const [fileKey, setFileKey] = useState(0)
-  const [staff, setStaff] = useState<Array<{ id?: string; user_id?: string; email: string; name: string }>>([])
+  const [staff, setStaff] = useState<Array<{ id?: string; user_id?: string; email: string; name: string; role: string }>>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [movements, setMovements] = useState<Movement[]>([])
   const [tab, setTab] = useState('products')
@@ -136,7 +138,8 @@ export default function AdminPage() {
   const tabs: Record<string, string> = { products: 'Товары', categories: 'Категории', orders: 'Заказы', stock: 'Складской учёт', staff: 'Администраторы', bulk: 'Массовый редактор', settings: 'Настройки сайта' }
   const [staffError, setStaffError] = useState('')
 
-  function showApp(session: { mode?: string }) {
+  function showApp(session: { mode?: string; role?: string }) {
+    setCurrentRole(session.role || 'admin')
     setAuthed(true)
     setMode(session.mode === 'file' ? 'Локальный режим' : 'Supabase')
   }
@@ -583,28 +586,30 @@ export default function AdminPage() {
           </section>
         </div>
         {tab === 'bulk' && <BulkProducts products={products} categories={categories} reload={load} />}
-        {tab === 'settings' && <SiteSettingsEditor categories={categories} />}
+        {tab === 'settings' && <><MailSettings /><SiteSettingsEditor categories={categories} /></>}
         {tab === 'orders' && <Orders orders={orders} reload={load} />}
         {tab === 'stock' && <Warehouse products={products} movements={movements} reload={load} />}
         <div className="layout stack" hidden={tab !== 'staff'}>
           <section className="panel">
-            <h2>Новый администратор</h2>
+            <h2>Новый сотрудник</h2><p>Администратор управляет сайтом и добавляет администраторов. Только владелец может назначать владельцев и менять роли.</p>
             <form
               onSubmit={async (event) => {
                 event.preventDefault()
                 const form = event.currentTarget
                 const data = new FormData(form)
                 try {
-                  await api('/api/admin/staff', {
+                  const created = await api('/api/admin/staff', {
                     method: 'POST',
                     body: JSON.stringify({
                       name: data.get('name'),
                       email: data.get('email'),
                       password: data.get('password'),
+                      role: data.get('role'),
                     }),
                   })
                   form.reset()
                   setStaffError('')
+                  setNotice(created.emailConfirmationRequired ? 'Сотрудник создан. Перед входом нужно подтвердить его почту в Supabase.' : 'Сотрудник создан.')
                   await load()
                 } catch (err) {
                   setStaffError(err instanceof Error ? err.message : 'Ошибка запроса')
@@ -621,15 +626,20 @@ export default function AdminPage() {
               </label>
               <label>
                 Пароль
-                <input name="password" type="password" required minLength={8} maxLength={200} autoComplete="new-password" />
+                <input name="password" type="password" required minLength={12} maxLength={200} autoComplete="new-password" />
               </label>
+              <label>Роль<select name="role" defaultValue="admin"><option value="admin">Администратор</option>{currentRole === 'owner' && <option value="owner">Владелец</option>}</select></label>
               <button type="submit">Назначить</button>
               <p className="error" hidden={!staffError}>{staffError}</p>
             </form>
             <ul className="list">
               {staff.map((person) => (
                 <li key={person.id || person.user_id || person.email}>
-                  <span>{person.name} · {person.email}</span>
+                  <span>{person.name} · {person.email} · {person.role === 'owner' ? 'Владелец' : 'Администратор'}</span>
+                  {currentRole === 'owner' && <button type="button" onClick={async()=>{
+                    if (!confirm(`Изменить роль сотрудника ${person.email}?`)) return
+                    try { await api('/api/admin/staff',{method:'PATCH',body:JSON.stringify({id:person.id || person.user_id,role:person.role === 'owner' ? 'admin' : 'owner'})}); const session=await api('/api/admin/session');setCurrentRole(session.role);await load();setStaffError('') } catch(err) {setStaffError(err instanceof Error ? err.message : 'Ошибка изменения роли')}
+                  }}>{person.role === 'owner' ? 'Сделать администратором' : 'Сделать владельцем'}</button>}
                 </li>
               ))}
             </ul>

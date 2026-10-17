@@ -4,7 +4,7 @@ import { FormEvent, useState } from 'react'
 import { adminApi } from './api'
 import { formatPrice } from '../../lib/format'
 
-export type Order = { id: string; customer_name: string; phone: string; email?: string; address?: string; comment?: string; total: number | null; created_at: string; status: string; request_kind?: string; consent?: { at?: string; version?: string }; items: Array<{ product_id: string; name: string; qty: number; unit: string; price: number | null }> }
+export type Order = { id: string; customer_name: string; phone: string; email?: string; address?: string; comment?: string; total: number | null; created_at: string; status: string; request_kind?: string; email_status?: string; email_attempted_at?: string; consent?: { at?: string; version?: string }; items: Array<{ product_id: string; name: string; qty: number; unit: string; price: number | null }> }
 export type StockProduct = { id: string; name: string; sku: string | null; unit: string | null; stock_quantity?: number | null; in_stock: boolean }
 export type Movement = { id: string; product_name: string; delta: number; balance: number; kind: string; note: string; created_at: string }
 export const statuses: Record<string, string> = { new: 'Новый', processing: 'В работе', completed: 'Завершён', cancelled: 'Отменён' }
@@ -25,6 +25,11 @@ export function Orders({ orders, reload }: { orders: Order[]; reload: () => Prom
       {order.address && <p>Доставка: {order.address}</p>}{order.comment && <p>Комментарий: {order.comment}</p>}
       {order.consent && <small>Согласие: {order.consent.version} · {order.consent.at ? date(order.consent.at) : ''}</small>}
       <details><summary>Состав заказа · {order.items?.length || 0} поз.</summary><div className="table-wrap"><table><thead><tr><th>Товар</th><th>Количество</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{(order.items || []).map((item, index) => <tr key={index}><td>{item.name}</td><td className="nowrap">{item.qty} {item.unit}</td><td className="nowrap">{formatPrice(item.price)}</td><td className="nowrap">{formatPrice(item.price == null ? null : item.price * item.qty)}</td></tr>)}</tbody></table></div></details>
+      <div className="order-email"><span>Почта: {({sent:'принято почтовым сервером',failed:'ошибка отправки',unconfigured:'SMTP не настроен',pending:'ожидает отправки'} as Record<string,string>)[order.email_status || 'pending']}</span>
+      {order.email_status !== 'sent' && <button type="button" disabled={busy===order.id} onClick={async()=>{
+        setBusy(order.id);setError('')
+        try {const result=await adminApi('/api/admin/orders/notify',{method:'POST',body:JSON.stringify({id:order.id})});await reload();if(result.status!=='sent')setError('Заявка сохранена. Письмо не отправлено: проверьте SMTP в настройках почты.')} catch(err){setError(err instanceof Error?err.message:'Ошибка отправки')} finally{setBusy('')}
+      }}>Повторить отправку на почту</button>}</div>
       <label className="order-status">Статус<select aria-label={`Статус заказа ${order.id.slice(0, 8)}`} value={order.status} disabled={busy === order.id} onChange={async e => { const status = e.target.value; setBusy(order.id); setError(''); try { await adminApi('/api/admin/orders', { method: 'PATCH', body: JSON.stringify({ id: order.id, status }) }); await reload() } catch (err) { setError(err instanceof Error ? err.message : 'Ошибка сохранения') } finally { setBusy('') } }}>{Object.entries(statuses).map(([value, title]) => <option key={value} value={value}>{title}</option>)}</select></label>
     </article>)}{!orders.length && <p className="empty">Заказов пока нет. Новые заявки из корзины появятся здесь.</p>}</div>
   </section>

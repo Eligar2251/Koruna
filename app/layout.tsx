@@ -1,3 +1,5 @@
+import '../components/site/design/fonts.css'
+import { headers } from 'next/headers'
 import { SiteProvider } from '../components/site/SiteProvider'
 import { PublicTools } from '../components/site/PublicTools'
 import { publicSettings, publicCatalog } from '../lib/public-data'
@@ -21,12 +23,13 @@ export const viewport: Viewport = {
 export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const adminArea = (await headers()).get('x-csb-admin-area') === '1'
   const [settings, catalog] = await Promise.all([publicSettings().catch(() => defaultSettings), publicCatalog().catch(() => ({ categories: [], products: [] }))])
   return (
     <html lang="ru">
       <body className="t-body" style={{ margin: 0 }}>
         <ViewportScale />
-        <SiteProvider settings={settings}>
+        <SiteProvider settings={settings} adminArea={adminArea}>
           <PublicHeader><Header categories={catalog.categories} /></PublicHeader>
           {children}
           <PublicTools />

@@ -250,3 +250,9 @@
  #t-header .t-menu__link-item { font-size: 14px !important; }
  #t-header .t-menu-base__list { column-gap: 24px; }
 }
+/* A centered vector chevron is stable across fonts and operating systems. */
+#t-header .csb-catalog-menu__trigger button { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 4px; margin: 0 0 0 2px; line-height: 1; flex: 0 0 24px; transform: none; }
+#t-header .csb-catalog-menu__trigger button[aria-expanded="true"] { transform: none; }
+#t-header .csb-catalog-menu__trigger svg { display: block; transition: transform .15s ease; }
+#t-header .csb-catalog-menu__trigger button[aria-expanded="true"] svg { transform: rotate(180deg); }
+@media(prefers-reduced-motion:reduce) { #t-header .csb-catalog-menu__trigger svg { transition: none; } }

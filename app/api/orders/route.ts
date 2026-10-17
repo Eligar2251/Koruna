@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!requestAllowed(req))
     return json({ error: "Слишком много запросов. Подождите." }, 429);
   try {
-    const body = await readJson(req),
+    const body = await readJson(req,16384),
       settings = await readSettings();
     const consent = consentRecord(body, settings);
     const store = await getStore();
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         ...buildOrder(body, await store.catalog()),
         request_kind: "order",
         consent,
-      }),
+      }, settings),
     );
   } catch (err) {
     return fail(err);

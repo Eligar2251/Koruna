@@ -1,3 +1,4 @@
+import { normalizePhone } from './phone.mjs'
 export function consentRecord(body, settings) {
   if (!settings.privacyReady)
     throw new Error(
@@ -24,7 +25,7 @@ export function consentRecord(body, settings) {
 }
 export function buildInquiry(body) {
   const name = String(body.name || "").trim(),
-    phone = String(body.phone || "").trim(),
+    phone = normalizePhone(body.phone),
     comment = String(body.comment || "").trim();
   if (
     name.length < 2 ||

@@ -4,13 +4,16 @@ import { fileURLToPath } from 'node:url'
 import { createInterface } from 'node:readline/promises'
 import { Writable } from 'node:stream'
 import { createClient } from '@supabase/supabase-js'
-import { createAccountBook } from '../server/accounts.mjs'
+import { passwordKey, createAccountBook } from '../server/accounts.mjs'
 import { readSupabaseConfig } from '../server/supabase-config.mjs'
 import { loadEnv } from './lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 loadEnv(root)
 const args = process.argv.slice(2)
+const roleIndex = args.indexOf('--role')
+const role = roleIndex >= 0 ? args[roleIndex+1] : 'owner'
+if (!['admin','owner'].includes(role)) throw new Error('Роль: admin или owner')
 if (args.includes('--help')) {
   console.log('npm run admin:create [-- --email admin@example.ru] [--reset] [--password-stdin]\nПароль вводится скрыто. --reset меняет пароль существующего локального администратора.\nДля Supabase создаёт пользователя Auth и выводит SQL для назначения первого администратора в SQL Editor. Service role и DATABASE_URL не требуются.')
   process.exit(0)
@@ -39,12 +42,13 @@ try {
     const created = signed.data.user ? signed : await client.auth.signUp({ email, password })
     const id = created.data.user?.id
     if (created.error || !id || !/^[0-9a-f-]{36}$/.test(id)) throw new Error('Не удалось создать пользователя Supabase. Проверьте регистрацию в Auth либо создайте пользователя вручную в Dashboard.')
-    console.log(`Пользователь Auth найден/создан. Подтвердите почту, если это требуется настройками проекта.\nВыполните в SQL Editor (не публикуйте SQL как API):\ninsert into public.admin_users (user_id) values ('${id}') on conflict do nothing;\nПосле выполнения SQL входите в /admin с заданными почтой и паролем.`)
+    const key = await passwordKey(password)
+    console.log(`Пользователь Auth найден/создан. Подтвердите почту, если это требуется настройками проекта.\nВыполните в SQL Editor (не публикуйте SQL как API):\ninsert into public.admin_users (user_id,role) values ('${id}','${role}') on conflict (user_id) do update set role=excluded.role;\ninsert into public.staff(user_id,email,name,password_key) values ('${id}','${email.replaceAll("'","''")}','Владелец','${key}') on conflict do nothing;\nПосле выполнения SQL входите по ADMIN_PATH из .env с заданными почтой и паролем.`)
   } else {
     const book = createAccountBook(path.join(root, 'data', 'admins.json'))
     if (args.includes('--reset')) await book.resetPassword(email, password)
-    else await book.create({ email, name: 'Администратор', password })
-    console.log('Локальный администратор сохранён. Вход: /admin с указанными почтой и паролем. Пароль в открытом виде не сохранён.')
+    else await book.create({ email, name: role === 'owner' ? 'Владелец' : 'Администратор', password, role })
+    console.log('Локальный администратор сохранён. Вход: ADMIN_PATH из .env с указанными почтой и паролем. Пароль в открытом виде не сохранён.')
   }
 } catch (err) { console.error(err.message); process.exitCode = 1 }
 finally { muted = false; rl?.close() }

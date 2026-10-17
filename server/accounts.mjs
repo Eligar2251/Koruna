@@ -7,6 +7,7 @@ import { promisify } from 'node:util'
 const scrypt = promisify(scryptCb)
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const queues = new Map()
 let cachedSecret = ''
 
 function secret() {
@@ -78,12 +79,12 @@ export async function passwordMatches(password, key) {
 }
 
 export function signAccess(account) {
-  return signJwt({ typ: 'access', role: 'admin', sub: account.id, email: account.email }, 12 * 60 * 60)
+  return signJwt({ typ: 'access', role: account.role || 'admin', sub: account.id, email: account.email }, 12 * 60 * 60)
 }
 
 export function readAccess(token) {
   const payload = verifyJwt(token)
-  if (!payload || payload.typ !== 'access' || payload.role !== 'admin' || typeof payload.sub !== 'string') return null
+  if (!payload || payload.typ !== 'access' || !['admin','owner'].includes(payload.role) || typeof payload.sub !== 'string') return null
   return payload
 }
 
@@ -94,16 +95,20 @@ function cleanAccount(body) {
   if (!EMAIL.test(email) || email.length > 200) throw new Error('Укажите почту')
   if (name.length < 2 || name.length > 120) throw new Error('Укажите имя')
   if (password.length < 8 || password.length > 200) throw new Error('Укажите пароль от 8 символов')
-  return { email, name, password }
+  const role = body.role
+  if (role !== undefined && !['admin','owner'].includes(role)) throw new Error('Некорректная роль')
+  return { email, name, password, role }
 }
 
 export function createAccountBook(file) {
-  let queue = Promise.resolve()
+
 
   async function read() {
     try {
       const data = JSON.parse(await readFile(file, 'utf8'))
       data.admins ??= []
+      // Migrate existing local accounts without taking access away from their first owner.
+      data.admins = data.admins.map((row,index)=>({...row, role: row.role || (index===0 ? 'owner' : 'admin')}))
       return data
     } catch (err) {
       if (err.code === 'ENOENT') return { admins: [] }
@@ -112,7 +117,7 @@ export function createAccountBook(file) {
   }
 
   function update(mutator) {
-    const run = queue.then(async () => {
+    const run = (queues.get(file) || Promise.resolve()).then(async () => {
       const data = await read()
       const result = await mutator(data)
       await mkdir(path.dirname(file), { recursive: true })
@@ -121,14 +126,14 @@ export function createAccountBook(file) {
       await rename(tmp, file)
       return result
     })
-    queue = run.then(() => undefined, () => undefined)
+    queues.set(file, run.then(() => undefined, () => undefined))
     return run
   }
 
   return {
     async list() {
       const data = await read()
-      return data.admins.map(({ id, email, name, created_at }) => ({ id, email, name, created_at }))
+      return data.admins.map(({ id, email, name, role, created_at }) => ({ id, email, name, role, created_at }))
     },
     async byId(id) {
       const data = await read()
@@ -142,11 +147,22 @@ export function createAccountBook(file) {
           id: randomBytes(16).toString('hex'),
           email: input.email,
           name: input.name,
+          role: input.role || (data.admins.length ? 'admin' : 'owner'),
           password_key: await passwordKey(input.password),
           created_at: new Date().toISOString(),
         }
         data.admins.push(row)
-        return { id: row.id, email: row.email, name: row.name, created_at: row.created_at }
+        return { id: row.id, email: row.email, name: row.name, role: row.role, created_at: row.created_at }
+      })
+    },
+    setRole(id, role) {
+      if (!['admin','owner'].includes(role)) throw new Error('Некорректная роль')
+      return update(data => {
+        const row = data.admins.find(account => account.id === id)
+        if (!row) throw new Error('Администратор не найден')
+        if (row.role === 'owner' && role !== 'owner' && data.admins.filter(account => account.role === 'owner').length < 2) throw new Error('Нельзя убрать последнего владельца')
+        row.role = role
+        return {id:row.id, email:row.email, name:row.name, role:row.role}
       })
     },
     resetPassword(email, password) {
@@ -155,7 +171,7 @@ export function createAccountBook(file) {
         const row = data.admins.find((item) => item.email === input.email)
         if (!row) throw new Error('Администратор не найден')
         row.password_key = await passwordKey(input.password)
-        return { id: row.id, email: row.email, name: row.name }
+        return { id: row.id, email: row.email, name: row.name, role: row.role }
       })
     },
     async authenticate(email, password) {
@@ -164,7 +180,7 @@ export function createAccountBook(file) {
       if (!row) return null
       const ok = await passwordMatches(String(password || ''), row.password_key)
       if (!ok) return null
-      return { id: row.id, email: row.email, name: row.name }
+      return { id: row.id, email: row.email, name: row.name, role: row.role }
     },
   }
 }

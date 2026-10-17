@@ -10,7 +10,6 @@ export function KrepejIMetizyPage() {
     <>
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-grid-3.0.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/ws/project22824286/tilda-blocks-page129886706.min.b28df34123.css" />
-      <link rel="stylesheet" href="/_fonts.googleapis.com/css2.bf76316f5c.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-popup-1.1.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-slds-1.4.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-catalog-1.2.min.css" />

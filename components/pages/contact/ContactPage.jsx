@@ -8,7 +8,6 @@ export function ContactPage() {
     <>
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-grid-3.0.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/ws/project22824286/tilda-blocks-page127863836.min.c369d01b43.css" />
-      <link rel="stylesheet" href="/_fonts.googleapis.com/css2.bf76316f5c.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menusub-1.1.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menu-widgeticons-1.0.min.css" />
       <link rel="stylesheet" href="/_static.tildacdn.com/css/tilda-menu-burger-1.0.min.css" />

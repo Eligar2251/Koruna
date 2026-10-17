@@ -35,6 +35,22 @@ for p in list(PAGES.rglob('*.jsx')) + list((ROOT/'components/chrome').glob('*.js
    src=json.loads(m[2])[4:-1].strip('"')
    return '<SiteBackground'+m[1]+'original={'+json.dumps(src)+'} style={{height: "60vh"}}'
   s=re.sub(r'<SiteBackground([^>]*?)style=\{\{backgroundImage: ("(?:[^"\\]|\\.)*"), height: "60vh"\}\}',background,s)
+ # The home hero calculation CTA is one semantic button, not four overlaid shapes.
+ if '1773127887314000001' in s and '<CalculationButton' not in s and re.search(r'<div className=\{"t396__elem[^>]+data-elem-id=\{"1773127887314000001"\}[^>]*>\s*<InquiryButton[^>]+/>',s):
+  for elem in ['1773127887314000002','1773127887314000003','1773127887314000004']:
+   match=re.search(r'<div className=\{"t396__elem[^>]+data-elem-id=\{"'+elem+r'"\}[^>]*>',s)
+   if match:
+    depth=1
+    for token in re.finditer(r'<div\b[^>]*>|</div>',s[match.end():]):
+     if token[0]=='</div>':depth-=1
+     elif not token[0].endswith('/>'):depth+=1
+     if depth==0:s=s[:match.start()]+s[match.end()+token.end():];break
+  match=re.search(r'(<div className=\{"t396__elem[^>]+data-elem-id=\{"1773127887314000001"\}[^>]*>)\s*<InquiryButton[^>]+/>',s)
+  if not match:raise RuntimeError('Missing hero calculation button')
+  s=s[:match.start()]+match[1]+'<CalculationButton />'+s[match.end():]
+  rel=os.path.relpath(ROOT/'components/site/CalculationButton',p.parent).replace('\\','/')
+  if not rel.startswith('.'):rel='./'+rel
+  s=f"import {{ CalculationButton }} from '{rel}'\n"+s
  # Keep the materials CTA in normal layout flow instead of separate absolute shapes.
  if 'id="3ce55672405b"' in s:
   position=s.index('id="3ce55672405b"')
@@ -50,6 +66,7 @@ for p in list(PAGES.rglob('*.jsx')) + list((ROOT/'components/chrome').glob('*.js
    rel=os.path.relpath(ROOT/'components/site/MaterialsCallout',p.parent).replace('\\','/')
    if not rel.startswith('.'):rel='./'+rel
    s=f"import {{ MaterialsCallout }} from '{rel}'\n"+s
+ s=re.sub(r'\s*<link rel="stylesheet" href="/_fonts\.googleapis\.com/[^"\s]+" />','',s)
  # Internal links are framework links; telephone, email and external media remain distinct.
  stack=[];edits=[]
  for t in re.finditer(r'<a\b[^>]*>|</a>',s):
@@ -65,6 +82,7 @@ for p in list(PAGES.rglob('*.jsx')) + list((ROOT/'components/chrome').glob('*.js
  # Header-only imports no longer belong in individual pages.
  if p.parent.name != 'chrome':
   s=re.sub(r"import \{ (?:Brand|MenuButton|CartCount) \} from [^\n]+\n",'',s)
+ s=re.sub(r"[ \t]+(?=\n)","",s)
  p.write_text(s)
 media_path=ROOT/'components/site/media.json';media=json.loads(media_path.read_text())
 for key,entry in media.items():

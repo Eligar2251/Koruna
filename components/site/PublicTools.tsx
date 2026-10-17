@@ -2,12 +2,13 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { usePathname } from "next/navigation";
 import { ConsentCheckbox, useSite } from "./SiteProvider";
+import { PhoneInput } from "./PhoneInput";
 import { phoneHref } from "../../lib/site-config";
 import "./design/site-tools.css";
 
 export function PublicTools() {
   const path = usePathname();
-  const { settings, inquiry, setInquiry } = useSite();
+  const { settings, inquiry, setInquiry, adminArea } = useSite();
   const dialog = useRef<HTMLDialogElement>(null);
   const [cookieOpen, setCookieOpen] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +31,7 @@ export function PublicTools() {
       dialog.current?.showModal();
     } else dialog.current?.close();
   }, [inquiry]);
-  if (path.startsWith("/admin")) return null;
+  if (adminArea || path.startsWith("/admin")) return null;
   const f = settings.fields;
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -169,14 +170,7 @@ export function PublicTools() {
               </label>
               <label>
                 Телефон
-                <input
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  required
-                  minLength={6}
-                  maxLength={40}
-                />
+                <PhoneInput required />
               </label>
               <label>
                 Почта (необязательно)

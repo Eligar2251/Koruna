@@ -7,19 +7,22 @@ import {
 } from "../../lib/site-config";
 const Context = createContext({
   settings: defaultSettings,
+  adminArea: false,
   inquiry: false,
   setInquiry: (_value: boolean) => {},
 });
 export function SiteProvider({
   settings,
   children,
+  adminArea = false,
 }: {
   settings: SiteSettings;
+  adminArea?: boolean;
   children: ReactNode;
 }) {
   const [inquiry, setInquiry] = useState(false);
   return (
-    <Context.Provider value={{ settings, inquiry, setInquiry }}>
+    <Context.Provider value={{ settings, inquiry, setInquiry, adminArea }}>
       {children}
     </Context.Provider>
   );
@@ -78,7 +81,7 @@ export function InquiryButton({
       className={className}
       style={style}
       aria-label={
-        props["aria-label"] || !children ? "Связаться с менеджером" : undefined
+        props["aria-label"] || (!children ? "Связаться с менеджером" : undefined)
       }
       title="Оставить заявку менеджеру"
       onClick={() => setInquiry(true)}

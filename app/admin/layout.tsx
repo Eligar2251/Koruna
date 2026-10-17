@@ -3,7 +3,9 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 
 export const metadata: Metadata = {
-  title: 'Админка — ЦСБ',
+  title: 'Управление — ЦСБ',
+  robots: { index: false, follow: false, nocache: true },
+  referrer: 'no-referrer',
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
