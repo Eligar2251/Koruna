@@ -185,3 +185,22 @@
 .koruna-filters input[type=number] { box-sizing: border-box; min-width: 0; width: 100%; padding: 10px 7px; border: 1px solid #d5e1d6; border-radius: 4px; color: #304f3b; font: inherit; background: white; }
 .koruna-filters__reset { border: 1px solid #d5e1d6; border-radius: 4px; padding: 10px; background: white; color: #1c6b5a; cursor: pointer; }
 @media(max-width:640px) { .koruna-filters label, .koruna-filters .koruna-filters__search, .koruna-filters__price { flex-basis: auto; } }
+
+/* Product filters occupy their own column, never a horizontal toolbar. */
+.koruna-products-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 28px; }
+.koruna-products-results { min-width: 0; }
+.koruna-filter-sidebar { position: sticky; top: 100px; padding: 20px; background: #f7faf7; border: 1px solid #dce5dc; border-radius: 6px; }
+.koruna-filter-sidebar__heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.koruna-filter-sidebar h3 { margin: 0; font-size: 18px; font-weight: 500; color: #1c6b5a; }
+.koruna-filter-sidebar .koruna-filters { display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; margin: 0; padding: 0; border: 0; background: none; }
+.koruna-filter-sidebar .koruna-filters label, .koruna-filter-sidebar .koruna-filters__price { min-width: 0; margin: 0; }
+.koruna-products-results > .koruna-catalog__state { margin: 0 0 16px; }
+.koruna-filter-toggle, .koruna-filter-close, .koruna-filter-backdrop { display: none; }
+@media(max-width: 800px) {
+ .koruna-products-layout { grid-template-columns: minmax(0,1fr); }
+ .koruna-filter-toggle { display: inline-flex; margin-bottom: 16px; padding: 11px 20px; border: 1px solid #1c6b5a; border-radius: 5px; color: #1c6b5a; background: white; font: inherit; cursor: pointer; }
+ .koruna-filter-sidebar { display: none; position: fixed; z-index: 2001; inset: 0 auto 0 0; width: min(320px, calc(100vw - 32px)); max-height: 100dvh; overflow-y: auto; overscroll-behavior: contain; border-radius: 0; padding: 24px; }
+ .koruna-filter-sidebar.is-open { display: block; }
+ .koruna-filter-close { display: block; padding: 4px 8px; border: 0; background: transparent; color: #1c6b5a; font: 26px/1 Arial,sans-serif; cursor: pointer; }
+ .koruna-filter-backdrop { display: block; position: fixed; inset: 0; z-index: 2000; border: 0; background: #112e2580; cursor: pointer; }
+}

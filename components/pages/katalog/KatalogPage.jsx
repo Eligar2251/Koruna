@@ -1,3 +1,4 @@
+import { MaterialsCallout } from '../../site/MaterialsCallout'
 import { NavLink } from '../../chrome/NavLink'
 import { SiteBackgroundLink, SiteImage } from '../../site/SiteImage'
 import { SiteText, SiteLink, InquiryButton } from '../../site/SiteProvider'
@@ -342,54 +343,7 @@ export function KatalogPage() {
             </div>
           </div>
         </div>
-        <div id={"rec2392984591"} className={"r t-rec"} data-animationappear={"off"} data-record-type={"396"}>
-          <div className={"t396"}>
-            <div className={"t396__artboard rendered"} data-artboard-recid={"2392984591"} data-artboard-screens={"320,960,1200"} data-artboard-height={"210"} data-artboard-valign={"center"} data-artboard-upscale={"window"} data-artboard-height-res-320={"420"}>
-              <div className={"csb-scale"}>
-                <div className={"t396__carrier"} data-artboard-recid={"2392984591"} />
-                <div className={"t396__filter"} data-artboard-recid={"2392984591"} />
-                <div className={"t396__elem tn-elem tn-elem__23929845911773123851291"} data-elem-id={"1773123851291"} data-elem-type={"shape"}>
-                  <div className={"tn-atom"} />
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773123964042"} data-elem-id={"1773123964042"} data-elem-type={"text"}>
-                  <div className={"tn-atom"} field={"tn_text_1773123964042"}>
-                    <SiteText id="3ce55672405b" fallback={"\u041d\u0443\u0436\u043d\u044b \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b \u0434\u043b\u044f \u0441\u0442\u0440\u043e\u0439\u043a\u0438?"} />
-                  </div>
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124014411000001"} data-elem-id={"1773124014411000001"} data-elem-type={"text"}>
-                  <div className={"tn-atom"} field={"tn_text_1773124014411000001"}>
-                    <SiteText id="b78bd88b02f9" fallback={"\u041e\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u0437\u0430\u044f\u0432\u043a\u0443 \u043f\u0440\u044f\u043c\u043e \u0441\u0435\u0439\u0447\u0430\u0441 \u2014 \u043f\u043e\u0434\u0433\u043e\u0442\u043e\u0432\u0438\u043c \u0440\u0430\u0441\u0447\u0435\u0442 \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u0438 \u0432 \u0442\u0435\u0447\u0435\u043d\u0438\u0435 15 \u043c\u0438\u043d\u0443\u0442"} />
-                  </div>
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124059754000001"} data-elem-id={"1773124059754000001"} data-elem-type={"shape"}>
-                  <InquiryButton className={"koruna-nolink tn-atom js-click-zero-stat"} target={"_blank"} />
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124059754000002"} data-elem-id={"1773124059754000002"} data-elem-type={"shape"}>
-                  <InquiryButton className={"koruna-nolink tn-atom js-click-zero-stat"} target={"_blank"} />
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124059755000004"} data-elem-id={"1773124059755000004"} data-elem-type={"text"}>
-                  <div className={"tn-atom"}>
-                    <InquiryButton className={"koruna-nolink"} target={"_blank"} style={{color: "inherit"}}>
-                      {">"}
-                    </InquiryButton>
-                  </div>
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124059754000003"} data-elem-id={"1773124059754000003"} data-elem-type={"text"}>
-                  <div className={"tn-atom"}>
-                    <InquiryButton className={"koruna-nolink"} target={"_blank"} style={{color: "inherit"}}>
-                      <SiteText id="7b1b15a5e608" fallback={"\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0440\u0430\u0441\u0447\u0435\u0442"} />
-                    </InquiryButton>
-                  </div>
-                </div>
-                <div className={"t396__elem tn-elem tn-elem__23929845911773124838346"} data-elem-id={"1773124838346"} data-elem-type={"image"}>
-                  <div className={"tn-atom"}>
-                    <SiteImage className={"tn-atom__img t-img"} src={"/_thb.tildacdn.com/tild3462-6636-4264-b065-363639366461/-/resize/20x/photo_2026-03-10_13-.png"} alt={""} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MaterialsCallout />
         <div id={"rec2000131321"} className={"r t-rec"} data-animationappear={"off"} data-record-type={"121"} data-alias-record-type={"396"}>
           <div className={"t396"}>
             <div className={"t396__artboard rendered"} data-artboard-recid={"2000131321"} data-artboard-screens={"320,960,1200"} data-artboard-height={"120"} data-artboard-valign={"center"} data-artboard-upscale={"grid"} data-artboard-height-res-320={"80"} data-artboard-height-res-960={"100"}>

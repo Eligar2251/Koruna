@@ -23,3 +23,27 @@ test('видео не загружаются автоматически и не 
  const page=await readFile(new URL('components/pages/o-kompanii/OKompaniiPage.jsx',root),'utf8');assert.doesNotMatch(page,/t1061__blockname|t-video-no-lazyload/)
  const video=await readFile(new URL('components/pages/o-kompanii/CompanyVideos.tsx',root),'utf8');assert.match(video,/active\.includes\(id\)/);assert.match(video,/setActive/);assert.match(video,/loading="lazy"/)
 })
+
+test('блок расчёта общий: фото и кнопка находятся в потоке, без абсолютных фигур Tilda',async()=>{
+ const callout=await readFile(new URL('components/site/MaterialsCallout.tsx',root),'utf8')
+ assert.match(callout,/csb-materials-callout__image/)
+ assert.match(callout,/InquiryButton/)
+ const css=await readFile(new URL('components/site/design/materials-callout.css',root),'utf8')
+ assert.match(css,/display:\s*grid/)
+ assert.doesNotMatch(css,/position:\s*absolute/)
+ for(const f of(await files('components/pages')).filter(f=>f.endsWith('.jsx'))){
+  const page=await readFile(new URL(f,root),'utf8')
+  assert.doesNotMatch(page,/<SiteText id="3ce55672405b"/,f)
+ }
+})
+
+test('фильтры вынесены в боковую колонку с выдвижной панелью на мобильных',async()=>{
+ const source=await readFile(new URL('components/catalog/ProductGrid.tsx',root),'utf8')
+ assert.match(source,/<aside/)
+ assert.match(source,/koruna-products-results/)
+ assert.match(source,/aria-modal/)
+ assert.match(source,/event.key === ["']Escape["']/)
+ const css=await readFile(new URL('components/catalog/design/catalog.css',root),'utf8')
+ assert.match(css,/grid-template-columns:\s*240px minmax\(0,\s*1fr\)/)
+ assert.match(css,/\.koruna-filter-sidebar\.is-open/)
+})
