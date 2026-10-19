@@ -1,0 +1,5 @@
+@media screen and (max-width: 960px) {
+  .tmenu-mobile__menucontent_hidden.csb-nav-open {
+    display: block !important;
+  }
+}

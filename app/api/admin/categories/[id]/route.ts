@@ -1,35 +1,56 @@
-import { fail, json, readJson, requireAdmin, validId } from '../../../../../lib/http'
-import { getStore } from '../../../../../lib/server'
+import { invalidateCatalog } from "../../../../../lib/public-data";
+function changed<T>(response: T): T {
+  invalidateCatalog();
+  return response;
+}
+import {
+  attachSession,
+  hasSiteHeader,
+  openAdmin,
+} from "../../../../../lib/auth";
+import { fail, json, readJson, validId } from "../../../../../lib/http";
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-type Ctx = { params: Promise<{ id: string }> }
+type Ctx = { params: Promise<{ id: string }> };
 
 function missing() {
-  return json({ error: 'Не найдено' }, 404)
+  return json({ error: "Не найдено" }, 404);
 }
 
 export async function PUT(req: Request, ctx: Ctx) {
-  const denied = requireAdmin(req)
-  if (denied) return denied
-  const { id } = await ctx.params
-  if (!validId(id)) return missing()
+  if (!hasSiteHeader(req)) return json({ error: "Запрос отклонён" }, 403);
+  const opened = await openAdmin(req);
+  if ("response" in opened) return opened.response;
+  const { id } = await ctx.params;
+  if (!validId(id)) return missing();
   try {
-    return json(await (await getStore()).saveCategory(await readJson(req), id))
+    return attachSession(
+      changed(
+        json(await opened.session.store.saveCategory(await readJson(req), id)),
+      ),
+      opened.session,
+      req,
+    );
   } catch (err) {
-    return fail(err)
+    return attachSession(fail(err), opened.session, req);
   }
 }
 
 export async function DELETE(req: Request, ctx: Ctx) {
-  const denied = requireAdmin(req)
-  if (denied) return denied
-  const { id } = await ctx.params
-  if (!validId(id)) return missing()
+  if (!hasSiteHeader(req)) return json({ error: "Запрос отклонён" }, 403);
+  const opened = await openAdmin(req);
+  if ("response" in opened) return opened.response;
+  const { id } = await ctx.params;
+  if (!validId(id)) return missing();
   try {
-    return json(await (await getStore()).deleteCategory(id))
+    return attachSession(
+      changed(json(await opened.session.store.deleteCategory(id))),
+      opened.session,
+      req,
+    );
   } catch (err) {
-    return fail(err)
+    return attachSession(fail(err), opened.session, req);
   }
 }

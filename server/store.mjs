@@ -1,6 +1,12 @@
+import { readSupabase } from './supabase-read.mjs'
+import { supabaseDataError } from './supabase-errors.mjs'
+import { buildBulkRows } from './bulk.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import { stockInput } from './inventory.mjs'
+
+const fileQueues = new Map()
 
 const SLUG = /^[a-z0-9-]{1,120}$/
 
@@ -80,8 +86,31 @@ export function productInput(body, fallbackSlug) {
     is_active: parseBool(body.is_active, true),
   }
   if (Object.hasOwn(body, 'category_id')) input.category_id = body.category_id || null
-  if (Object.hasOwn(body, 'image_url')) input.image_url = body.image_url || null
+  if (Object.hasOwn(body, 'image_url')) input.image_url = cleanImageUrl(body.image_url)
   return input
+}
+
+function localAsset(text) {
+  if (text.includes('..') || text.includes('\\') || text.includes('//') || text.includes('?') || text.includes('#')) return false
+  if (!/^\/[a-zA-Z0-9._/-]+$/.test(text)) return false
+  return text.startsWith('/uploads/') || text.startsWith('/assets/') || text.startsWith('/_static.tildacdn.com/')
+}
+
+function cleanImageUrl(value) {
+  if (value === null || value === undefined || value === '') return null
+  const text = String(value).trim()
+  if (text.length > 2000) throw new Error('Некорректный адрес фото')
+  if (localAsset(text)) return text
+  let url
+  try {
+    url = new URL(text)
+  } catch {
+    throw new Error('Некорректный адрес фото')
+  }
+  if (url.protocol !== 'https:' || !url.pathname.startsWith('/storage/v1/object/public/product-images/')) {
+    throw new Error('Некорректный адрес фото')
+  }
+  return text
 }
 
 function publicCatalog(categories, products) {
@@ -96,7 +125,7 @@ function publicCatalog(categories, products) {
 }
 
 export function createFileStore(file) {
-  let queue = Promise.resolve()
+
 
   async function read() {
     try {
@@ -108,7 +137,7 @@ export function createFileStore(file) {
   }
 
   function update(mutator) {
-    const run = queue.then(async () => {
+    const run = (fileQueues.get(file) || Promise.resolve()).then(async () => {
       const data = await read()
       data.categories ??= []
       data.products ??= []
@@ -119,12 +148,39 @@ export function createFileStore(file) {
       await rename(tmp, file)
       return result
     })
-    queue = run.then(() => undefined, () => undefined)
+    fileQueues.set(file, run.then(() => undefined, () => undefined))
     return run
   }
 
   return {
     mode: 'file',
+    bulkProducts(updates) {
+      return update(data => {
+        const rows = buildBulkRows(updates, data.products, data.categories)
+        for (const row of rows) Object.assign(data.products.find(p => p.id === row.id), row, { updated_at: new Date().toISOString() })
+        return { updated: rows.length }
+      })
+    },
+    async stockMovements() {
+      const data = await read()
+      return (data.stock_movements || []).slice().reverse().slice(0, 200)
+    },
+    adjustStock(id, body) {
+      const input = stockInput(body)
+      return update((data) => {
+        const product = data.products.find((row) => row.id === id)
+        if (!product) throw new Error('Товар не найден')
+        const balance = (product.stock_quantity ?? 0) + input.delta
+        if (balance < 0 || balance > 1000000000) throw new Error('Некорректный остаток: недостаточно товара или превышен лимит')
+        product.stock_quantity = balance
+        product.in_stock = balance > 0
+        product.updated_at = new Date().toISOString()
+        const movement = { id: randomUUID(), product_id: id, product_name: product.name, ...input, balance, created_at: product.updated_at }
+        data.stock_movements ??= []
+        data.stock_movements.push(movement)
+        return movement
+      })
+    },
     async catalog() {
       const data = await read()
       return publicCatalog(data.categories, data.products)
@@ -169,6 +225,7 @@ export function createFileStore(file) {
         const current = id ? data.products.find((item) => item.id === id) : null
         if (id && !current) throw new Error('Товар не найден')
         const input = productInput(body, current?.slug)
+        if (current?.stock_quantity != null) input.in_stock = current.stock_quantity > 0
         if (input.category_id && !data.categories.some((item) => item.id === input.category_id)) {
           throw new Error('Раздел не найден')
         }
@@ -201,29 +258,47 @@ export function createFileStore(file) {
 }
 
 export function createSupabaseStore(client) {
-  function raise(error) {
+  function raise(error, operation = 'write', status = 0) {
     if (!error) return
-    if (/relation .* does not exist|schema cache/i.test(error.message)) {
-      throw new Error('В Supabase нет таблиц каталога. Примените миграции из supabase/migrations.')
-    }
-    if (/duplicate key/i.test(error.message)) throw new Error('Такой адрес уже есть')
-    throw new Error(error.message)
+    if (/duplicate key|unique/i.test(error.message)) throw new Error('Такой адрес уже есть')
+    if (/недостаточно|остаток|товар не найден|некоррект/i.test(error.message)) throw new Error(error.message)
+    throw supabaseDataError(error, 'catalog', status, operation)
   }
 
   return {
     mode: 'supabase',
+    async bulkProducts(updates) {
+      const all = await this.adminList()
+      const rows = buildBulkRows(updates, all.products, all.categories)
+      const result = await client.rpc('bulk_update_products', { p_rows: rows })
+      raise(result.error)
+      return { updated: rows.length }
+    },
+    async stockMovements() {
+      const result = await client.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(200)
+      raise(result.error)
+      return result.data || []
+    },
+    async adjustStock(id, body) {
+      const input = stockInput(body)
+      const result = await client.rpc('adjust_stock', { p_product_id: id, p_delta: input.delta, p_kind: input.kind, p_note: input.note })
+      raise(result.error)
+      return result.data
+    },
     async catalog() {
-      const categories = await client.from('categories').select('*').eq('is_active', true).order('sort_order')
-      raise(categories.error)
-      const products = await client.from('products').select('*').eq('is_active', true).order('sort_order')
-      raise(products.error)
+      const [categories, products] = await Promise.all([
+        readSupabase(signal => client.from('categories').select('*').eq('is_active', true).order('sort_order').abortSignal(signal)),
+        readSupabase(signal => client.from('products').select('*').eq('is_active', true).order('sort_order').abortSignal(signal)),
+      ])
+      raise(categories.error, 'read', categories.status)
+      raise(products.error, 'read', products.status)
       return publicCatalog(categories.data || [], products.data || [])
     },
     async adminList() {
       const categories = await client.from('categories').select('*').order('sort_order')
-      raise(categories.error)
+      raise(categories.error, 'read', categories.status)
       const products = await client.from('products').select('*').order('sort_order')
-      raise(products.error)
+      raise(products.error, 'read', products.status)
       return { categories: categories.data || [], products: products.data || [] }
     },
     async saveCategory(body, id) {
@@ -248,11 +323,12 @@ export function createSupabaseStore(client) {
     },
     async saveProduct(body, id) {
       const current = id
-        ? await client.from('products').select('slug,image_url').eq('id', id).maybeSingle()
+        ? await client.from('products').select('*').eq('id', id).maybeSingle()
         : { data: null, error: null }
       raise(current.error)
       if (id && !current.data) throw new Error('Товар не найден')
       const input = productInput(body, current.data?.slug)
+      if (current.data?.stock_quantity != null) input.in_stock = current.data.stock_quantity > 0
       if (!id) {
         if (!Object.hasOwn(input, 'image_url')) input.image_url = null
         if (!Object.hasOwn(input, 'category_id')) input.category_id = null

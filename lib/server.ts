@@ -1,11 +1,16 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { randomBytes } from 'node:crypto'
+import { access, mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { createFileStore, createSupabaseStore, type CatalogStore } from '../server/store.mjs'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { seedFileStore } from '../server/seed.mjs'
+import { createFileStore, createSupabaseStore } from '../server/store.mjs'
+
+type CatalogStore = ReturnType<typeof createFileStore> | ReturnType<typeof createSupabaseStore>
+import { configuredSupabase, supabaseClient } from './auth'
 
 const dataFile = path.join(process.cwd(), 'data', 'catalog.json')
+const seedMarker = path.join(process.cwd(), 'data', 'catalog.seeded')
 const uploadsDir = path.join(process.cwd(), 'uploads')
-const sessions = new Map<string, { expires: number }>()
 const IMAGE_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -15,35 +20,31 @@ const MAX_IMAGE = 5 * 1024 * 1024
 
 export type { CatalogStore }
 
-export function configuredSupabase() {
-  const url = process.env.SUPABASE_URL || ''
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  if (!url || !key) return null
-  if (/YOUR_|your-service-role-key|your-anon-key/i.test(`${url} ${key}`)) return null
-  return { url: url.replace(/\/+$/, ''), key }
-}
-
 let storePromise: Promise<CatalogStore> | null = null
 
 export function getStore() {
-  if (!storePromise) storePromise = openStore()
+  if (!storePromise) {
+    storePromise = openStore().catch((err) => {
+      storePromise = null
+      throw err
+    })
+  }
   return storePromise
 }
 
 async function openStore() {
-  const remote = configuredSupabase()
-  if (!remote) return createFileStore(dataFile)
-  const { createClient } = await import('@supabase/supabase-js')
-  const client = createClient(remote.url, remote.key, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  })
-  return createSupabaseStore(client)
-}
-
-export function passwordsMatch(input: string, expected: string) {
-  const left = createHash('sha256').update(String(input)).digest()
-  const right = createHash('sha256').update(String(expected)).digest()
-  return timingSafeEqual(left, right)
+  const client = supabaseClient()
+  if (client) return createSupabaseStore(client)
+  const store = createFileStore(dataFile)
+  try {
+    await access(seedMarker)
+  } catch {
+    const list = await store.adminList()
+    if (!list.products.length) await seedFileStore(store)
+    await mkdir(path.dirname(seedMarker), { recursive: true })
+    await writeFile(seedMarker, '1')
+  }
+  return store
 }
 
 export function readCookie(req: Request, name: string) {
@@ -55,47 +56,26 @@ export function readCookie(req: Request, name: string) {
   return ''
 }
 
-export function isAdmin(req: Request) {
-  const token = readCookie(req, 'koruna_admin')
-  const session = sessions.get(token)
-  if (!session || session.expires < Date.now()) {
-    if (token) sessions.delete(token)
-    return false
-  }
-  return true
-}
-
-export function openSession() {
-  const token = randomBytes(24).toString('hex')
-  sessions.set(token, { expires: Date.now() + 12 * 60 * 60 * 1000 })
-  return token
-}
-
-export function closeSession(req: Request) {
-  sessions.delete(readCookie(req, 'koruna_admin'))
-}
-
-export async function saveImage(body: Record<string, unknown>) {
+export async function saveImage(body: Record<string, unknown>, client?: SupabaseClient | null) {
   const type = String(body.image_type || '')
   const ext = IMAGE_TYPES[type]
   if (!ext) throw new Error('Фото: только JPG, PNG или WebP')
   const buffer = Buffer.from(String(body.image_base64 || ''), 'base64')
   if (!buffer.length || buffer.length > MAX_IMAGE) throw new Error('Фото не больше 5 МБ')
+  const valid = type === 'image/jpeg' ? buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
+    : type === 'image/png' ? buffer.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+    : buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP'
+  if (!valid) throw new Error('Некорректный файл изображения')
   const name = `${randomBytes(16).toString('hex')}.${ext}`
-  const store = await getStore()
-  const remote = configuredSupabase()
-  if (remote && store.mode === 'supabase') {
-    const { createClient } = await import('@supabase/supabase-js')
-    const client = createClient(remote.url, remote.key, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    })
+  if (client) {
     const uploaded = await client.storage.from('product-images').upload(name, buffer, {
       contentType: type,
       cacheControl: '3600',
       upsert: false,
     })
-    if (uploaded.error) throw new Error(uploaded.error.message || 'Не удалось загрузить фото')
-    return client.storage.from('product-images').getPublicUrl(name).data.publicUrl
+    if (uploaded.error) throw new Error('Не удалось загрузить фото')
+    const remote = configuredSupabase()
+    return `${remote?.url}/storage/v1/object/public/product-images/${name}`
   }
   await mkdir(uploadsDir, { recursive: true })
   await writeFile(path.join(uploadsDir, name), buffer)

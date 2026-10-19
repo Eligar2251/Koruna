@@ -1,0 +1,11 @@
+.t396__elem button.csb-calculation-button {
+ display: flex !important; align-items: center; justify-content: space-between; gap: 16px;
+ box-sizing: border-box; width: 100% !important; height: 100% !important; padding: 0 20px !important;
+ color: #1c6b5a !important; -webkit-text-fill-color: #1c6b5a; background: #fff !important;
+ border: 1px solid #d9e7dd !important; border-radius: 5px !important;
+ font: 600 14px/1.3 var(--csb-font,Arial,sans-serif); cursor: pointer; text-decoration: none;
+}
+.t396__elem button.csb-calculation-button span { color: inherit !important; -webkit-text-fill-color: inherit; }
+.t396__elem button.csb-calculation-button svg { flex: 0 0 20px; }
+.t396__elem button.csb-calculation-button:hover { background: #edf5ef !important; }
+.t396__elem button.csb-calculation-button:focus-visible { outline: 3px solid #c47a3a; outline-offset: 3px; }
